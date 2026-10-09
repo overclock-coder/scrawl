@@ -28,4 +28,6 @@ export interface RoundRecord {
   commitHash: string;
   commitSig?: string;
   settleSig?: string;
+  /** Set for rounds staked with real devnet SOL through the on-chain program. */
+  live?: { position: string };
 }

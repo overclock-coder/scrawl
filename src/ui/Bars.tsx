@@ -28,8 +28,8 @@ function Pill({ icon, text, color }: { icon: number; text: string; color: string
 
 /** The web page's fixed bottom bar: zoom, wallet pill, profit pill, status and clear. */
 export function BottomControls({
-  onZoomIn, onZoomOut, balance, pnl, minutes, hasPoints, onClear,
-}: { onZoomIn: () => void; onZoomOut: () => void; balance: number; pnl: number | null; minutes: number | null; hasPoints: boolean; onClear: () => void }) {
+  onZoomIn, onZoomOut, balance, balanceText, pnl, minutes, hasPoints, onClear,
+}: { onZoomIn: () => void; onZoomOut: () => void; balance: number; balanceText?: string; pnl: number | null; minutes: number | null; hasPoints: boolean; onClear: () => void }) {
   const pnlColor = pnl === null ? C.lime : pnl >= 0 ? "#6EE7B7" : "#FCA5A5";
   return (
     <View style={{ backgroundColor: fade(C.purple, 0.96), borderTopWidth: 4, borderTopColor: C.lime, paddingHorizontal: 8, paddingVertical: 8, flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -38,7 +38,7 @@ export function BottomControls({
         <Square label="+" onPress={onZoomIn} />
       </View>
       <View style={{ flex: 1, flexDirection: "row", gap: 6, justifyContent: "center" }}>
-        <Pill icon={require("../../assets/ui/wallet.png")} text={balance.toLocaleString(undefined, { maximumFractionDigits: 0 })} color="#E5E7EB" />
+        <Pill icon={require("../../assets/ui/wallet.png")} text={balanceText ?? balance.toLocaleString(undefined, { maximumFractionDigits: 0 })} color="#E5E7EB" />
         <Pill icon={require("../../assets/ui/coins.png")} text={pnl === null ? "+0.00" : `${pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}`} color={pnlColor} />
       </View>
       {hasPoints ? (

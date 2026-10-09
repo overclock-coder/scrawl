@@ -55,7 +55,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const finishRound = useCallback((r: RoundRecord) => {
     setP((s) => ({
       ...s,
-      balance: s.balance + r.score.payout,
+      balance: r.live ? s.balance : s.balance + r.score.payout,
       streak: bumpStreak(s.streak, r.startedAt),
       history: [r, ...s.history].slice(0, MAX_HISTORY),
     }));

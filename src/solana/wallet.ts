@@ -3,6 +3,8 @@ import { Connection, PublicKey, Transaction, TransactionInstruction, LAMPORTS_PE
 import { Buffer } from "buffer";
 import { APP_IDENTITY, CLUSTER, RPC_URL } from "../config";
 import { MEMO_PROGRAM_ID } from "../logic/commit";
+import { solToLamports } from "../logic/onchain";
+import { openPositionIx, positionAddress } from "./program";
 import { secureGet, secureSet } from "../services/kv";
 
 const TOKEN_KEY = "mwa.authToken";
@@ -71,6 +73,27 @@ export async function sendMemo(text: string): Promise<{ signature: string; addre
     );
     const [signature] = await wallet.signAndSendTransactions({ transactions: [tx] });
     return { signature, address: owner.toBase58() };
+  });
+}
+
+/**
+ * Stake `count` back-to-back 60s positions in ONE wallet approval: one open_position per minute, each started
+ * 60s after the last. The drawing commitment is stored on-chain with every position.
+ */
+export async function openPositions(a: { count: number; stakeSol: number; leverage: number; commitment: Uint8Array }) {
+  return transact(async (wallet) => {
+    const owner = await authorize(wallet);
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+    const base = BigInt(Date.now());
+    const tx = new Transaction({ feePayer: owner, blockhash, lastValidBlockHeight });
+    const positions: string[] = [];
+    for (let i = 0; i < a.count; i++) {
+      const nonce = base + BigInt(i);
+      tx.add(openPositionIx({ user: owner, nonce, amount: solToLamports(a.stakeSol), leverage: a.leverage, commitment: a.commitment, slot: i }));
+      positions.push(positionAddress(owner, nonce).toBase58());
+    }
+    const [signature] = await wallet.signAndSendTransactions({ transactions: [tx] });
+    return { signature, positions, address: owner.toBase58() };
   });
 }
 

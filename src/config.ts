@@ -14,3 +14,10 @@ export const DAILY_BONUS = 100;
 
 // uri must serve `icon` (relative) and, for silent re-authorise in Phantom, be a verified identity domain.
 export const APP_IDENTITY = { name: "Scrawl", uri: "https://scrawl.app", icon: "favicon.png" } as const;
+
+// Settler: scores on-chain positions and closes them. Debug builds reach the Mac via `adb reverse tcp:3000 tcp:3000`;
+// a release build needs an https URL (set EXPO_PUBLIC_SETTLER_URL).
+export const SETTLER_URL = process.env.EXPO_PUBLIC_SETTLER_URL ?? "http://localhost:3000";
+export const MIN_STAKE_SOL = 0.01;
+// Each position account costs ~0.002 SOL of rent, plus a network fee.
+export const POSITION_RENT_SOL = 0.002;

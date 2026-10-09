@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import * as Haptics from "expo-haptics";
-import { ASSET, BAND_PCT } from "../config";
+import { ASSET, BAND_PCT, MIN_STAKE_SOL, POSITION_RENT_SOL } from "../config";
 import { commitMemo, hashPrices } from "../logic/commit";
+import { commitmentBytes } from "../logic/onchain";
 import { MIN_COVERAGE, coverage, strokeToPrices } from "../logic/sampling";
 import { MAX_LEVERAGE } from "../logic/scoring";
 import { Point } from "../logic/types";
 import { classifyWalletError } from "../logic/walletErrors";
 import { feed } from "../services/priceFeed";
-import { sendMemo } from "../solana/wallet";
+import { registerDrawing, settlerOnline } from "../services/settler";
+import { confirm, openPositions, sendMemo } from "../solana/wallet";
 import { useStore } from "../state/store";
 import { BottomControls } from "../ui/Bars";
 import { DrawPad, PAD_HEIGHT } from "../ui/DrawPad";
-import { money, useFeed, useSeries } from "../ui/hooks";
+import { fmtAmount, money, useFeed, useSeries, useSol } from "../ui/hooks";
 import { Chipbadge, NeoBox, Venite } from "../ui/neo";
 import { PriceChart } from "../ui/PriceChart";
 import { SlotLever } from "../ui/SlotLever";
@@ -29,6 +31,8 @@ export interface RoundPlan {
   commitHash: string;
   commitSig?: string;
   startedAt: number;
+  /** Present when staked with devnet SOL: one on-chain position per minute. */
+  live?: { positions: string[] };
 }
 
 const CHIPS = [
@@ -56,12 +60,25 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
   const [levOpen, setLevOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [practice, setPractice] = useState(false);
+  const { sol, refresh } = useSol(session?.address);
 
+  const onchain = !!session && !practice;
   const stake = Math.max(0, Number(amount) || 0);
   const total = stake * minutes;
   const ready = coverage(stroke, padW) >= MIN_COVERAGE;
   const live = status === "live" && price != null;
-  const canGo = ready && live && stake >= 1 && total <= balance && !busy;
+  const minStake = onchain ? MIN_STAKE_SOL : 1;
+  const overhead = onchain ? POSITION_RENT_SOL * minutes + 0.001 : 0;
+  const funds = onchain ? (sol ?? 0) : balance;
+  const affordable = total + overhead <= funds;
+  const canGo = ready && live && stake >= minStake && affordable && !busy;
+
+  const setMode = (p: boolean) => {
+    setPractice(p);
+    setAmount(session && !p ? "0.02" : "10");
+    setMsg(null);
+  };
   const lastPnl = history[0]?.score.pnl ?? null;
 
   const go = async () => {
@@ -70,6 +87,24 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
     setMsg(null);
     const predicted = strokeToPrices(stroke, padW, PAD_HEIGHT, startPrice, BAND_PCT);
     const commitHash = hashPrices(predicted);
+    if (onchain) {
+      setBusy(true);
+      try {
+        if (!(await settlerOnline())) throw new Error("The settler is offline, so rounds cannot be scored. Start it and retry.");
+        const res = await openPositions({ count: minutes, stakeSol: stake, leverage: lev, commitment: commitmentBytes(predicted) });
+        if (!(await confirm(res.signature))) throw new Error("The stake transaction failed on-chain.");
+        await Promise.all(res.positions.map((pos) => registerDrawing(pos, predicted)));
+        void refresh();
+        setBusy(false);
+        onStart({ predicted, stake, count: minutes, leverage: lev, startPrice, commitHash, commitSig: res.signature, startedAt: Date.now(), live: { positions: res.positions } });
+        setStroke([]);
+      } catch (e) {
+        const c = classifyWalletError(e);
+        setMsg(c.kind === "failed" && e instanceof Error ? e.message : c.message);
+        setBusy(false);
+      }
+      return;
+    }
     let commitSig: string | undefined;
     if (session) {
       setBusy(true);
@@ -89,7 +124,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
   };
 
   const visible = series.slice(-ZOOMS[zoom]);
-  const statusLine = !live ? "Connecting to the market…" : total > balance ? "Not enough ink for that stake" : stake < 1 ? "Minimum stake is 1" : null;
+  const statusLine = !live ? "Connecting to the market…" : stake < minStake ? `Minimum stake is ${minStake}${onchain ? " SOL" : ""}` : !affordable ? (onchain ? "Not enough devnet SOL (stake + account rent)" : "Not enough ink for that stake") : null;
 
   return (
     <View style={{ flex: 1 }}>
@@ -131,6 +166,17 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
             })}
           </View>
 
+          {session && (
+            <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+              {([[false, "◎ Devnet SOL"], [true, "Practice · ink"]] as const).map(([p, label]) => (
+                <Pressable key={label} onPress={() => setMode(p)} style={{ flex: 1 }}>
+                  <NeoBox bg={practice === p ? C.lime : C.purple} borderWidth={3} radius={10} shadow={3} shadowColor={practice === p ? C.purple : C.lime} innerStyle={{ paddingVertical: 8, alignItems: "center" }}>
+                    <Text style={{ color: practice === p ? C.purple : C.lime, fontFamily: F.black, fontSize: 12 }}>{label}</Text>
+                  </NeoBox>
+                </Pressable>
+              ))}
+            </View>
+          )}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
             <NeoBox bg={C.purple} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} style={{ flex: 1 }} innerStyle={{ paddingHorizontal: 12, flexDirection: "row", alignItems: "center" }}>
               <TextInput
@@ -138,10 +184,10 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
                 onChangeText={(t) => setAmount(t.replace(/[^0-9.]/g, ""))}
                 keyboardType="numeric"
                 style={{ flex: 1, color: C.lime, fontFamily: F.black, fontSize: 15, paddingVertical: 8 }}
-                placeholder="10"
+                placeholder={onchain ? "0.02" : "10"}
                 placeholderTextColor={fade(C.lime, 0.4)}
               />
-              <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>INK{minutes > 1 ? ` ×${minutes}` : ""}</Text>
+              <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{onchain ? "SOL" : "INK"}{minutes > 1 ? ` ×${minutes}` : ""}</Text>
             </NeoBox>
             <Pressable onPress={() => setLevOpen(true)}>
               <NeoBox bg={C.purple} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} innerStyle={{ paddingHorizontal: 14, paddingVertical: 11 }}>
@@ -163,19 +209,20 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
           <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, borderWidth: 2, borderColor: C.lime, borderRadius: 12, backgroundColor: fade(C.bg, 0.6) }}>
             <Text style={{ fontSize: 18 }}>🎯</Text>
             <Text style={{ color: msg ? C.gold : C.lime, fontFamily: F.bold, fontSize: 13, flexShrink: 1 }}>
-              {busy ? "Sealing your drawing in your wallet…" : msg ?? statusLine}
+              {busy ? (onchain ? "Approve the stake in your wallet…" : "Sealing your drawing in your wallet…") : msg ?? statusLine}
             </Text>
           </View>
         )}
         <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11, textAlign: "center", marginTop: 12, lineHeight: 16 }}>
-          {session ? "Drawing is hashed and sealed on Solana devnet before the clock starts." : "Connect a wallet (top right) to seal drawings on Solana. Without one, rounds are practice only."}
+          {onchain ? "Your stake is escrowed in the program on Solana devnet. The settler scores the round and pays out." : session ? "Practice mode: ink only, drawing sealed with a memo." : "Connect a wallet (top right) to seal drawings on Solana. Without one, rounds are practice only."}
         </Text>
       </ScrollView>
 
       <BottomControls
         onZoomIn={() => setZoom((z) => Math.max(0, z - 1))}
         onZoomOut={() => setZoom((z) => Math.min(ZOOMS.length - 1, z + 1))}
-        balance={balance}
+        balance={onchain ? (sol ?? 0) : balance}
+        balanceText={onchain ? `${(sol ?? 0).toFixed(3)} SOL` : undefined}
         pnl={lastPnl}
         minutes={minutes}
         hasPoints={stroke.length > 0}

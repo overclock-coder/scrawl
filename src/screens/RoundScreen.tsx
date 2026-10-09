@@ -7,8 +7,9 @@ import { PriceWindow } from "../logic/priceWindow";
 import { scoreRound } from "../logic/scoring";
 import { RoundRecord, WINDOW } from "../logic/types";
 import { feed } from "../services/priceFeed";
+import { jobStatus } from "../services/settler";
 import { useStore } from "../state/store";
-import { money } from "../ui/hooks";
+import { fmtAmount, money } from "../ui/hooks";
 import { NeoBox, Venite } from "../ui/neo";
 import { PriceChart } from "../ui/PriceChart";
 import { C, F, fade } from "../ui/theme";
@@ -23,6 +24,8 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
   const wins = useRef(Array.from({ length: plan.count }, (_, i) => new PriceWindow(plan.startedAt + i * WINDOW * 1000)));
   const finished = useRef<string[]>([]);
   const scored = useRef<string[]>([]);
+  const done = useRef(0);
+  const [note, setNote] = useState<string | null>(null);
   const [width, setWidth] = useState(300);
   const [now, setNow] = useState(Date.now());
   const [msgI, setMsgI] = useState(0);
@@ -51,31 +54,57 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const finishOne = () => {
+    done.current += 1;
+    if (done.current === plan.count) setTimeout(() => (scored.current.length ? onDone(scored.current) : onAbort()), 400);
+  };
+
+  const record = (rec: RoundRecord) => {
+    finishRound(rec);
+    scored.current.push(rec.id);
+    Haptics.notificationAsync(rec.score.pnl >= 0 ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning).catch(() => {});
+  };
+
+  /** Staked with SOL: the settler scores the window and closes the position on-chain; we read its result. */
+  const settleLive = async (i: number, id: string) => {
+    const position = plan.live!.positions[i];
+    for (let n = 0; n < 60; n++) {
+      const job = await jobStatus(position);
+      if (job?.status === "settled" && job.result) {
+        const r = job.result;
+        const move = Math.abs(r.actual[WINDOW - 1] - r.actual[0]);
+        record({
+          id, asset: ASSET, startedAt: plan.startedAt + i * WINDOW * 1000, stake: plan.stake, leverage: plan.leverage,
+          predicted: plan.predicted, actual: r.actual,
+          score: {
+            accuracy: r.accuracy, correct: r.correct, compared: r.compared, priceMove: move,
+            maxProfit: move * (plan.stake / r.actual[0]) * plan.leverage, pnl: r.pnlSol,
+            fee: r.pnlSol > 0 ? (r.pnlSol * 200) / 10_000 : 0, payout: r.payoutSol,
+          },
+          commitHash: plan.commitHash, commitSig: plan.commitSig, settleSig: r.signature, live: { position },
+        });
+        return finishOne();
+      }
+      if (job?.status === "failed") break;
+      await new Promise((res) => setTimeout(res, 2000));
+    }
+    setNote("A position could not be settled yet. Your stake stays escrowed on-chain.");
+    finishOne();
+  };
+
   const settle = (i: number, w: PriceWindow, id: string) => {
+    if (plan.live) return void settleLive(i, id);
     try {
       const actual = w.prices();
       const score = scoreRound(plan.predicted, actual, plan.stake, plan.leverage);
-      const rec: RoundRecord = {
-        id,
-        asset: ASSET,
-        startedAt: plan.startedAt + i * WINDOW * 1000,
-        stake: plan.stake,
-        leverage: plan.leverage,
-        predicted: plan.predicted,
-        actual,
-        score,
-        commitHash: plan.commitHash,
-        commitSig: plan.commitSig,
-      };
-      finishRound(rec);
-      scored.current.push(id);
-      Haptics.notificationAsync(score.pnl >= 0 ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      record({
+        id, asset: ASSET, startedAt: plan.startedAt + i * WINDOW * 1000, stake: plan.stake, leverage: plan.leverage,
+        predicted: plan.predicted, actual, score, commitHash: plan.commitHash, commitSig: plan.commitSig,
+      });
     } catch {
       stakeOut(-plan.stake); // no price data for this window: refund its stake
     }
-    if (finished.current.length === plan.count) {
-      setTimeout(() => (scored.current.length ? onDone(scored.current) : onAbort()), 400);
-    }
+    finishOne();
   };
 
   const idx = Math.min(Math.floor((now - plan.startedAt) / (WINDOW * 1000)), plan.count - 1);
@@ -97,7 +126,7 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, borderWidth: 2, borderColor: C.lime, borderRadius: 12, backgroundColor: fade(C.bg, 0.6), marginBottom: 12 }}>
         <Text style={{ fontSize: 18 }}>🎯</Text>
         <Text style={{ color: C.lime, fontFamily: F.bold, fontSize: 14 }}>
-          {left === 0 ? "Awaiting settlement... crunching the future lines" : MESSAGES[msgI]}
+          {left === 0 ? plan.live ? "Settling on-chain… paying out" : "Awaiting settlement... crunching the future lines" : MESSAGES[msgI]}
           {left > 0 && <Text style={{ color: fade(C.lime, 0.8), fontSize: 12 }}>  ({left}s left)</Text>}
         </Text>
       </View>
@@ -105,7 +134,7 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
       <NeoBox shadow={6} radius={16} innerStyle={{ padding: 10, overflow: "hidden" }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
           <View>
-            <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{ASSET}/USDT · {plan.leverage}x · {money(plan.stake)} ink</Text>
+            <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{ASSET}/USDT · {plan.leverage}x · {fmtAmount(!!plan.live, plan.stake)}{plan.live ? "" : " ink"}</Text>
             <Text style={{ color: delta >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 26, fontWeight: "700" }}>{last ? `$${money(last)}` : "…"}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
@@ -122,7 +151,7 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
         </View>
       </NeoBox>
       <Text style={{ color: fade(C.white, 0.55), fontFamily: F.regular, fontSize: 12, textAlign: "center", marginTop: 16 }}>
-        {plan.commitSig ? "Drawing sealed on Solana before this round started." : "Practice round: not sealed on-chain."}
+        {note ?? (plan.live ? "Stake escrowed on Solana devnet. The settler pays out after the 60s window." : plan.commitSig ? "Drawing sealed on Solana before this round started." : "Practice round: not sealed on-chain.")}
       </Text>
     </View>
   );

@@ -5,7 +5,7 @@ import { hashPrices, settleMemo } from "../logic/commit";
 import { classifyWalletError } from "../logic/walletErrors";
 import { sendMemo } from "../solana/wallet";
 import { useStore } from "../state/store";
-import { money } from "../ui/hooks";
+import { fmtAmount, money } from "../ui/hooks";
 import { NeoBox, NeoButton, Venite } from "../ui/neo";
 import { PriceChart } from "../ui/PriceChart";
 import { C, F, fade } from "../ui/theme";
@@ -22,6 +22,7 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
   const r = rounds[Math.min(sel, rounds.length - 1)];
   const total = rounds.reduce((a, x) => a + x.score.pnl, 0);
   const win = total >= 0;
+  const live = !!r.live;
 
   const settle = async () => {
     setBusy(true);
@@ -39,8 +40,8 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
     <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 28 }}>
       <View style={{ alignItems: "center", marginVertical: 8 }}>
         <Text style={{ color: fade(C.white, 0.7), fontFamily: F.bold, fontSize: 12 }}>{rounds.length > 1 ? `BATCH PnL · ${rounds.length} positions` : "ROUND PnL"}</Text>
-        <Venite size={40} color={win ? C.lime : "#FCA5A5"} off={3}>{`${win ? "+" : ""}${money(total)}`}</Venite>
-        <Text style={{ color: fade(C.white, 0.7), fontFamily: F.regular }}>ink</Text>
+        <Venite size={40} color={win ? C.lime : "#FCA5A5"} off={3}>{`${win ? "+" : ""}${live ? total.toFixed(4) : money(total)}`}</Venite>
+        <Text style={{ color: fade(C.white, 0.7), fontFamily: F.regular }}>{live ? "devnet SOL" : "ink"}</Text>
       </View>
 
       {rounds.length > 1 && (
@@ -49,7 +50,7 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
             <Pressable key={x.id} onPress={() => setSel(i)} style={{ flex: 1 }}>
               <NeoBox bg={i === sel ? C.lime : C.purple} border={C.lime} borderWidth={3} radius={10} shadow={3} shadowColor={i === sel ? C.purple : C.lime} innerStyle={{ paddingVertical: 8, alignItems: "center" }}>
                 <Text style={{ color: i === sel ? C.purple : C.lime, fontFamily: F.black, fontSize: 12 }}>#{i + 1}</Text>
-                <Text style={{ color: i === sel ? C.purple : x.score.pnl >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 11 }}>{x.score.pnl >= 0 ? "+" : ""}{x.score.pnl.toFixed(2)}</Text>
+                <Text style={{ color: i === sel ? C.purple : x.score.pnl >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 11 }}>{x.score.pnl >= 0 ? "+" : ""}{x.score.pnl.toFixed(live ? 4 : 2)}</Text>
               </NeoBox>
             </Pressable>
           ))}
@@ -66,9 +67,9 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
 
       <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
         {[
-          ["Stake", money(r.stake)],
+          ["Stake", live ? `${r.stake}` : money(r.stake)],
           ["Leverage", `${r.leverage}x`],
-          ["Payout", money(r.score.payout)],
+          ["Payout", live ? r.score.payout.toFixed(4) : money(r.score.payout)],
         ].map(([k, v]) => (
           <NeoBox key={k} bg={fade(C.purple, 0.6)} border={C.lime} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} style={{ flex: 1 }} innerStyle={{ padding: 10 }}>
             <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 17 }}>{v}</Text>
@@ -77,18 +78,18 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
         ))}
       </View>
       <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11, marginTop: 8 }}>
-        50% accuracy is break-even · 2% fee on profit only ({money(r.score.fee)} taken)
+        50% accuracy is break-even · 2% fee on profit only ({fmtAmount(live, r.score.fee)} taken)
       </Text>
 
       <Venite size={16} off={2} style={{ marginTop: 18, marginBottom: 10 }}>Proof on Solana (devnet)</Venite>
       <View style={{ gap: 12 }}>
         {r.commitSig ? (
-          <NeoButton kind="light" small title="View commit transaction ↗" onPress={() => Linking.openURL(EXPLORER(r.commitSig as string))} />
+          <NeoButton kind="light" small title={live ? "View stake transaction ↗" : "View commit transaction ↗"} onPress={() => Linking.openURL(EXPLORER(r.commitSig as string))} />
         ) : (
           <Text style={{ color: fade(C.white, 0.6), fontFamily: F.regular, fontSize: 12 }}>Practice round. Connect a wallet to seal drawings.</Text>
         )}
-        {r.commitSig && !r.settleSig && session && <NeoButton kind="dark" small title={busy ? "Waiting for wallet…" : "Settle result on-chain"} disabled={busy} onPress={settle} />}
-        {r.settleSig && <NeoButton kind="light" small title="View settlement transaction ↗" onPress={() => Linking.openURL(EXPLORER(r.settleSig as string))} />}
+        {!live && r.commitSig && !r.settleSig && session && <NeoButton kind="dark" small title={busy ? "Waiting for wallet…" : "Settle result on-chain"} disabled={busy} onPress={settle} />}
+        {r.settleSig && <NeoButton kind="light" small title={live ? "View payout transaction ↗" : "View settlement transaction ↗"} onPress={() => Linking.openURL(EXPLORER(r.settleSig as string))} />}
       </View>
       {msg && <Text style={{ color: C.gold, marginTop: 8, fontFamily: F.regular }}>{msg}</Text>}
 

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { getBalanceSol } from "../solana/wallet";
 import { feed, FeedStatus } from "../services/priceFeed";
 
 export function useFeed() {
@@ -36,3 +37,25 @@ export function useSeries(length: number) {
 
 export const short = (a: string) => `${a.slice(0, 4)}…${a.slice(-4)}`;
 export const money = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+
+/** Wallet SOL balance, refreshed every 20s and on demand. */
+export function useSol(address?: string) {
+  const [sol, setSol] = useState<number | null>(null);
+  const refresh = useCallback(async () => {
+    if (!address) return setSol(null);
+    try {
+      setSol(await getBalanceSol(address));
+    } catch {
+      /* keep the last known value */
+    }
+  }, [address]);
+  useEffect(() => {
+    void refresh();
+    const t = setInterval(refresh, 20_000);
+    return () => clearInterval(t);
+  }, [refresh]);
+  return { sol, refresh };
+}
+
+/** Amounts: devnet SOL needs more decimals than practice ink. */
+export const fmtAmount = (live: boolean, v: number) => (live ? `${v.toFixed(4)} SOL` : money(v));

@@ -18,8 +18,10 @@ export function HistoryScreen({ onOpen, onWallet }: { onOpen: (id: string) => vo
     return {
       n,
       winRate: n ? (wins / n) * 100 : 0,
-      pnl: history.reduce((a, h) => a + h.score.pnl, 0),
-      best: history.reduce((m, h) => Math.max(m, h.score.pnl), 0),
+      pnl: history.filter((h) => !h.live).reduce((a, h) => a + h.score.pnl, 0),
+      best: history.filter((h) => !h.live).reduce((m, h) => Math.max(m, h.score.pnl), 0),
+      liveSol: history.filter((h) => h.live).reduce((a, h) => a + h.score.pnl, 0),
+      hasLive: history.some((h) => h.live),
     };
   }, [history]);
 
@@ -27,7 +29,8 @@ export function HistoryScreen({ onOpen, onWallet }: { onOpen: (id: string) => vo
   const cards: [string, string, string, string?][] = [
     ["📊", "Total trades", String(stats.n)],
     ["🎯", "Win rate", `${stats.winRate.toFixed(1)}%`],
-    ["💰", "Total PnL", money(stats.pnl), stats.pnl < 0 ? C.red : undefined],
+    ["💰", "PnL (ink)", money(stats.pnl), stats.pnl < 0 ? C.red : undefined],
+    ...(stats.hasLive ? ([["◎", "PnL (devnet SOL)", `${stats.liveSol >= 0 ? "+" : ""}${stats.liveSol.toFixed(4)}`, stats.liveSol < 0 ? C.red : undefined]] as [string, string, string, string?][]) : []),
     ["🔥", "Day streak", String(streak.count)],
   ];
 
@@ -90,10 +93,10 @@ export function HistoryScreen({ onOpen, onWallet }: { onOpen: (id: string) => vo
                   <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 14 }}>{h.commitSig ? "🔒 Sealed round" : "Practice round"}</Text>
                   <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11 }}>{new Date(h.startedAt).toLocaleString()}</Text>
                 </View>
-                <Text style={{ color: pos ? C.lime : C.red, fontFamily: F.black, fontSize: 19 }}>{pos ? "+" : ""}{h.score.pnl.toFixed(2)}</Text>
+                <Text style={{ color: pos ? C.lime : C.red, fontFamily: F.black, fontSize: 19 }}>{pos ? "+" : ""}{h.score.pnl.toFixed(h.live ? 4 : 2)}{h.live ? " SOL" : ""}</Text>
               </View>
               <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
-                <Text style={{ color: fade(C.white, 0.75), fontFamily: F.regular, fontSize: 12 }}>Stake {money(h.stake)} · {h.leverage}x</Text>
+                <Text style={{ color: fade(C.white, 0.75), fontFamily: F.regular, fontSize: 12 }}>Stake {h.live ? `${h.stake} SOL` : money(h.stake)} · {h.leverage}x</Text>
                 <Text style={{ color: fade(C.white, 0.75), fontFamily: F.regular, fontSize: 12 }}>{(h.score.accuracy * 100).toFixed(0)}% accuracy</Text>
                 {h.commitSig ? (
                   <Text onPress={() => Linking.openURL(EXPLORER(h.commitSig as string))} style={{ color: C.lime, fontFamily: F.mono, fontSize: 12, textDecorationLine: "underline" }}>{short(h.commitSig)}</Text>

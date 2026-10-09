@@ -38,10 +38,10 @@ export function Leaderboard() {
           name: "You",
           avatar: "🎨",
           address: session?.address ?? "local-device-player",
-          pnl: history.reduce((a, h) => a + h.score.pnl, 0),
+          pnl: history.filter((h) => !h.live).reduce((a, h) => a + h.score.pnl, 0), // ink only; SOL rounds are tracked separately
           winRate: (history.filter((h) => h.score.pnl > 0).length / history.length) * 100,
           trades: history.length,
-          best: history.reduce((m, h) => Math.max(m, h.score.pnl), 0),
+          best: history.filter((h) => !h.live).reduce((m, h) => Math.max(m, h.score.pnl), 0),
           accuracy: (history.reduce((a, h) => a + h.score.accuracy, 0) / history.length) * 100,
           you: true,
         }
