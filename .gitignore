@@ -40,8 +40,6 @@ yarn-error.*
 /ios
 /android
 
-# reference material, never committed
-/resolv-main
 
 # generated native project (config plugins only)
 /android
