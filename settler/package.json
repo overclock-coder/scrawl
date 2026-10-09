@@ -1,0 +1,7 @@
+{
+  "name": "scrawl-settler",
+  "private": true,
+  "type": "module",
+  "scripts": { "start": "tsx src/server.ts", "dev": "tsx watch src/server.ts" },
+  "devDependencies": { "tsx": "^4.19.0" }
+}

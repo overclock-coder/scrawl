@@ -52,3 +52,4 @@ google-services.json
 # Anchor
 /anchor/target
 /anchor/.anchor
+/settler/node_modules
