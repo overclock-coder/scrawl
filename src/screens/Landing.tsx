@@ -43,7 +43,7 @@ export function Landing({ onPlay, onBoard }: { onPlay: () => void; onBoard: () =
 
           <Animated.View style={{ width: heroW, height: 130, marginTop: 20, transform: [{ translateY: bob }] }}>
             <RainbowTrail pts={[{ x: 0, y: 70 }, { x: heroW * 0.55, y: 70 }]} width={heroW} height={130} thickness={30} />
-            <NyanCat x={heroW * 0.55} y={70} scale={0.95} />
+            <NyanCat x={heroW * 0.55} y={70} scale={0.62} />
           </Animated.View>
         </View>
 

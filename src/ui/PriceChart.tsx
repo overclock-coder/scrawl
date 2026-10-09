@@ -16,7 +16,7 @@ interface Props {
   catScale?: number;
 }
 
-export function PriceChart({ width, height, series, slots = series.length, overlay, cat = true, catScale = 0.42 }: Props) {
+export function PriceChart({ width, height, series, slots = series.length, overlay, cat = true, catScale = 0.3 }: Props) {
   const first = series.find((v) => v !== undefined);
   const shift = overlay && first !== undefined ? first - overlay[0] : 0;
   const ov = overlay?.map((p) => p + shift);

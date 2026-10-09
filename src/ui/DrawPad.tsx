@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, PanResponder, StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Path } from "react-native-svg";
-import * as Haptics from "expo-haptics";
 import { appendPoint } from "../logic/sampling";
 import { Point } from "../logic/types";
 import { C, F, fade } from "./theme";
@@ -18,10 +17,33 @@ interface Props {
 
 export const toPath = (pts: Point[]) => pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
 
-/** Finger-drawn prediction canvas with neon stroke. Strokes are forced left-to-right (see appendPoint). */
+/**
+ * Finger-drawn prediction canvas with neon stroke. Strokes are forced left-to-right (see appendPoint).
+ * The stroke lives in this component while the finger is down (redrawn at most once per frame) and is handed
+ * to the screen on release, so drawing never re-renders the rest of the Play screen.
+ */
 export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
   const ref = useRef<Point[]>(stroke);
-  ref.current = stroke;
+  const [local, setLocal] = useState<Point[]>(stroke);
+  const frame = useRef<number | null>(null);
+  const drawingRef = useRef(false);
+  const push = (next: Point[]) => {
+    ref.current = next;
+    if (frame.current === null) {
+      frame.current = requestAnimationFrame(() => {
+        frame.current = null;
+        setLocal(ref.current);
+      });
+    }
+  };
+  // Parent cleared or replaced the stroke (not while the finger is down).
+  useEffect(() => {
+    if (!drawingRef.current && stroke !== ref.current) {
+      ref.current = stroke;
+      setLocal(stroke);
+    }
+  }, [stroke]);
+  useEffect(() => () => { if (frame.current !== null) cancelAnimationFrame(frame.current); }, []);
   const widthRef = useRef(width);
   widthRef.current = width;
   const [active, setActive] = useState(false);
@@ -40,23 +62,29 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
         onMoveShouldSetPanResponder: () => true,
         onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: (e) => {
+          drawingRef.current = true;
           setActive(true);
           onDrawing?.(true);
-          Haptics.selectionAsync().catch(() => {});
           const { locationX: x, locationY: y } = e.nativeEvent;
-          onStroke(appendPoint([], { x, y: Math.min(Math.max(y, 0), PAD_HEIGHT) }, widthRef.current));
+          push(appendPoint([], { x, y: Math.min(Math.max(y, 0), PAD_HEIGHT) }, widthRef.current));
         },
         onPanResponderMove: (e) => {
           const { locationX: x, locationY: y } = e.nativeEvent;
           const next = appendPoint(ref.current, { x, y: Math.min(Math.max(y, 0), PAD_HEIGHT) }, widthRef.current);
-          if (next !== ref.current) onStroke(next);
+          if (next !== ref.current) push(next);
         },
         onPanResponderRelease: () => {
+          drawingRef.current = false;
           setActive(false);
+          setLocal(ref.current);
+          onStroke(ref.current);
           onDrawing?.(false);
         },
         onPanResponderTerminate: () => {
+          drawingRef.current = false;
           setActive(false);
+          setLocal(ref.current);
+          onStroke(ref.current);
           onDrawing?.(false);
         },
       }),
@@ -64,7 +92,7 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
     []
   );
 
-  const d = stroke.length > 1 ? toPath(stroke) : "";
+  const d = local.length > 1 ? toPath(local) : "";
   return (
     <View style={s.pad} onLayout={(e) => onSize(e.nativeEvent.layout.width)} {...pan.panHandlers}>
       <Svg width={width} height={PAD_HEIGHT} pointerEvents="none">
@@ -73,7 +101,7 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
         {d ? <Path d={d} stroke={C.lime} strokeWidth={5} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
       </Svg>
       <Text style={s.current}>current</Text>
-      {stroke.length === 0 && !active && (
+      {local.length === 0 && !active && (
         <View style={s.hint} pointerEvents="none">
           <Text style={s.hintText}>Draw your prediction</Text>
           <Animated.Text style={[s.hintText, { marginLeft: 8, transform: [{ translateX: nudge }] }]}>→</Animated.Text>
