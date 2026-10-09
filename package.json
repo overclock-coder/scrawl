@@ -1,22 +1,43 @@
 {
-  "name": "app",
+  "name": "scrawl",
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@noble/hashes": "^2.4.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@solana-mobile/mobile-wallet-adapter-protocol": "^3.0.0",
+    "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^3.0.0",
+    "@solana/web3.js": "^1.99.0",
+    "bs58": "^6.0.0",
+    "buffer": "^6.0.3",
     "expo": "~57.0.27",
+    "expo-build-properties": "~57.0.22",
+    "expo-crypto": "~57.0.3",
+    "expo-dev-client": "~57.0.19",
+    "expo-haptics": "~57.0.3",
+    "expo-keep-awake": "~57.0.2",
+    "expo-secure-store": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
-    "react-native": "0.86.3"
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-get-random-values": "^2.0.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-svg": "15.15.4",
+    "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "private": true
 }

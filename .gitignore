@@ -39,3 +39,14 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# reference material, never committed
+/resolv-main
+
+# generated native project (config plugins only)
+/android
+/ios
+
+# secrets
+google-services.json
+.env*
