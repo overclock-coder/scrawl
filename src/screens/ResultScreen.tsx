@@ -41,7 +41,7 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
       <View style={{ alignItems: "center", marginVertical: 8 }}>
         <Text style={{ color: fade(C.white, 0.7), fontFamily: F.bold, fontSize: 12 }}>{rounds.length > 1 ? `BATCH PnL · ${rounds.length} positions` : "ROUND PnL"}</Text>
         <Venite size={40} color={win ? C.lime : "#FCA5A5"} off={3}>{`${win ? "+" : ""}${live ? total.toFixed(4) : money(total)}`}</Venite>
-        <Text style={{ color: fade(C.white, 0.7), fontFamily: F.regular }}>{live ? "devnet SOL" : "ink"}</Text>
+        <Text style={{ color: fade(C.white, 0.7), fontFamily: F.regular }}>{live ? "devnet SOL" : "SCP"}</Text>
       </View>
 
       {rounds.length > 1 && (

@@ -124,7 +124,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
   };
 
   const visible = series.slice(-ZOOMS[zoom]);
-  const statusLine = !live ? "Connecting to the market…" : stake < minStake ? `Minimum stake is ${minStake}${onchain ? " SOL" : ""}` : !affordable ? (onchain ? "Not enough devnet SOL (stake + account rent)" : "Not enough ink for that stake") : null;
+  const statusLine = !live ? "Connecting to the market…" : stake < minStake ? `Minimum stake is ${minStake}${onchain ? " SOL" : ""}` : !affordable ? (onchain ? "Not enough devnet SOL (stake + account rent)" : "Not enough SCP for that stake") : null;
 
   return (
     <View style={{ flex: 1 }}>
@@ -168,7 +168,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
 
           {session && (
             <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
-              {([[false, "◎ Devnet SOL"], [true, "Practice · ink"]] as const).map(([p, label]) => (
+              {([[false, "◎ Devnet SOL"], [true, "Practice · SCP"]] as const).map(([p, label]) => (
                 <Pressable key={label} onPress={() => setPractice(p)} style={{ flex: 1 }}>
                   <NeoBox bg={practice === p ? C.lime : C.purple} borderWidth={3} radius={10} shadow={3} shadowColor={practice === p ? C.purple : C.lime} innerStyle={{ paddingVertical: 8, alignItems: "center" }}>
                     <Text style={{ color: practice === p ? C.purple : C.lime, fontFamily: F.black, fontSize: 12 }}>{label}</Text>
@@ -187,7 +187,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
                 placeholder={onchain ? "0.02" : "10"}
                 placeholderTextColor={fade(C.lime, 0.4)}
               />
-              <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{onchain ? "SOL" : "INK"}{minutes > 1 ? ` ×${minutes}` : ""}</Text>
+              <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{onchain ? "SOL" : "SCP"}{minutes > 1 ? ` ×${minutes}` : ""}</Text>
             </NeoBox>
             <Pressable onPress={() => setLevOpen(true)}>
               <NeoBox bg={C.purple} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} innerStyle={{ paddingHorizontal: 14, paddingVertical: 11 }}>
@@ -214,7 +214,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
           </View>
         )}
         <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11, textAlign: "center", marginTop: 12, lineHeight: 16 }}>
-          {onchain ? "Your stake is escrowed in the program on Solana devnet. The settler scores the round and pays out." : session ? "Practice mode: ink only, drawing sealed with a memo." : "Connect a wallet (top right) to seal drawings on Solana. Without one, rounds are practice only."}
+          {onchain ? "Your stake is escrowed in the program on Solana devnet. The settler scores the round and pays out." : session ? "Practice mode: SCP only, drawing sealed with a memo." : "Connect a wallet (top right) to seal drawings on Solana. Without one, rounds are practice only."}
         </Text>
       </ScrollView>
 
