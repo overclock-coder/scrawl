@@ -134,7 +134,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
             <View>
               <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{ASSET}/USDT</Text>
-              <Text style={{ color: C.white, fontFamily: F.mono, fontSize: 24, fontWeight: "700" }}>{price ? `$${money(price)}` : "…"}</Text>
+              <Text style={{ color: C.white, fontFamily: F.mono, fontSize: 15, marginTop: 6 }}>{price ? `$${money(price)}` : "…"}</Text>
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: live ? C.lime : C.gold, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
               <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.purple }} />

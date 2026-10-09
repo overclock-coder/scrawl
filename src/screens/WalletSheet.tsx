@@ -38,7 +38,7 @@ export function WalletSheet({ visible, onClose }: { visible: boolean; onClose: (
             <Venite size={22}>Wallet</Venite>
             {session ? (
               <>
-                <Text style={{ color: C.white, fontFamily: F.mono, marginTop: 12 }}>{short(session.address)}</Text>
+                <Text style={{ color: C.white, fontFamily: F.mono, fontSize: 10, marginTop: 12 }}>{short(session.address)}</Text>
                 <Text style={{ color: C.lime, fontFamily: F.bold, marginTop: 4 }}>Devnet: {sol == null ? "…" : `${sol.toFixed(3)} SOL`}</Text>
                 <View style={{ gap: 12, marginTop: 16 }}>
                   <NeoButton kind="light" small title={busy === "drop" ? "Requesting…" : "Get 1 devnet SOL"} disabled={!!busy} onPress={() => run("drop", async () => { await airdrop(session.address); setSol(await getBalanceSol(session.address)); })} />

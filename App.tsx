@@ -3,7 +3,8 @@ import { BackHandler, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
-import { Inter_400Regular, Inter_700Bold, Inter_900Black } from "@expo-google-fonts/inter";
+import { PixelifySans_400Regular, PixelifySans_700Bold } from "@expo-google-fonts/pixelify-sans";
+import { PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
 import { feed } from "./src/services/priceFeed";
 import { StoreProvider } from "./src/state/store";
 import { HistoryScreen } from "./src/screens/HistoryScreen";
@@ -84,9 +85,9 @@ function Shell() {
 export default function App() {
   const [loaded] = useFonts({
     Venite: require("./assets/fonts/VeniteAdoremus.ttf"),
-    Inter_400Regular,
-    Inter_700Bold,
-    Inter_900Black,
+    PixelifySans_400Regular,
+    PixelifySans_700Bold,
+    PressStart2P_400Regular,
   });
   return (
     <SafeAreaProvider>

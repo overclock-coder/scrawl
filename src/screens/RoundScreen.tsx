@@ -135,7 +135,7 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
           <View>
             <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{ASSET}/USDT · {plan.leverage}x · {fmtAmount(!!plan.live, plan.stake)}{plan.live ? "" : " SCP"}</Text>
-            <Text style={{ color: delta >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 26, fontWeight: "700" }}>{last ? `$${money(last)}` : "…"}</Text>
+            <Text style={{ color: delta >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 16, marginTop: 6 }}>{last ? `$${money(last)}` : "…"}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
             <Venite size={46} off={3}>{String(left)}</Venite>

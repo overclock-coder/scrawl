@@ -114,7 +114,7 @@ const s = StyleSheet.create({
   text: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: C.bg },
   reel: { flex: 1, height: CH, overflow: "hidden", alignItems: "center" },
   face: { height: CH, width: "100%", alignItems: "center", justifyContent: "center", backgroundColor: C.purple },
-  faceText: { color: C.lime, fontFamily: F.mono, fontWeight: "700", fontSize: 20, textShadowColor: "rgba(193,255,114,0.5)", textShadowRadius: 8 },
+  faceText: { color: C.lime, fontFamily: F.mono, fontSize: 15, textShadowColor: "rgba(193,255,114,0.5)", textShadowRadius: 8 },
   fence: { width: 3, alignSelf: "stretch", backgroundColor: C.lime },
   lever: { position: "absolute", right: 0, top: 0, bottom: 0, width: 56 },
   base: { position: "absolute", right: 14, top: 66, width: 26, height: 12, borderWidth: 3, borderColor: C.lime, borderLeftWidth: 0, borderTopRightRadius: 4, borderBottomRightRadius: 4, backgroundColor: C.purple },

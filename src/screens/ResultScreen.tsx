@@ -50,7 +50,7 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
             <Pressable key={x.id} onPress={() => setSel(i)} style={{ flex: 1 }}>
               <NeoBox bg={i === sel ? C.lime : C.purple} border={C.lime} borderWidth={3} radius={10} shadow={3} shadowColor={i === sel ? C.purple : C.lime} innerStyle={{ paddingVertical: 8, alignItems: "center" }}>
                 <Text style={{ color: i === sel ? C.purple : C.lime, fontFamily: F.black, fontSize: 12 }}>#{i + 1}</Text>
-                <Text style={{ color: i === sel ? C.purple : x.score.pnl >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 11 }}>{x.score.pnl >= 0 ? "+" : ""}{x.score.pnl.toFixed(live ? 4 : 2)}</Text>
+                <Text style={{ color: i === sel ? C.purple : x.score.pnl >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 8 }}>{x.score.pnl >= 0 ? "+" : ""}{x.score.pnl.toFixed(live ? 4 : 2)}</Text>
               </NeoBox>
             </Pressable>
           ))}

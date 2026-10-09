@@ -12,10 +12,11 @@ export const C = {
 
 export const F = {
   venite: "Venite",
-  regular: "Inter_400Regular",
-  bold: "Inter_700Bold",
-  black: "Inter_900Black",
-  mono: "monospace",
+  // Pixelify Sans carries the UI text (no 900 weight, so "black" shares bold); Press Start 2P is for numbers.
+  regular: "PixelifySans_400Regular",
+  bold: "PixelifySans_700Bold",
+  black: "PixelifySans_700Bold",
+  mono: "PressStart2P_400Regular",
 };
 
 export const RAINBOW = ["#ff0000", "#ff9900", "#ffff00", "#33ff00", "#0099ff", "#6633ff"];

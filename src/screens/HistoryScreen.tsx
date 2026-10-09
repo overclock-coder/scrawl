@@ -99,9 +99,9 @@ export function HistoryScreen({ onOpen, onWallet }: { onOpen: (id: string) => vo
                 <Text style={{ color: fade(C.white, 0.75), fontFamily: F.regular, fontSize: 12 }}>Stake {h.live ? `${h.stake} SOL` : money(h.stake)} · {h.leverage}x</Text>
                 <Text style={{ color: fade(C.white, 0.75), fontFamily: F.regular, fontSize: 12 }}>{(h.score.accuracy * 100).toFixed(0)}% accuracy</Text>
                 {h.commitSig ? (
-                  <Text onPress={() => Linking.openURL(EXPLORER(h.commitSig as string))} style={{ color: C.lime, fontFamily: F.mono, fontSize: 12, textDecorationLine: "underline" }}>{short(h.commitSig)}</Text>
+                  <Text onPress={() => Linking.openURL(EXPLORER(h.commitSig as string))} style={{ color: C.lime, fontFamily: F.mono, fontSize: 9, textDecorationLine: "underline" }}>{short(h.commitSig)}</Text>
                 ) : (
-                  <Text style={{ color: fade(C.white, 0.35), fontFamily: F.mono, fontSize: 12 }}>no tx</Text>
+                  <Text style={{ color: fade(C.white, 0.35), fontFamily: F.mono, fontSize: 9 }}>no tx</Text>
                 )}
               </View>
             </NeoBox>

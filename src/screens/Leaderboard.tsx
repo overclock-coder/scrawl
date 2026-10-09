@@ -84,7 +84,7 @@ export function Leaderboard() {
                   <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 15 }}>{t.name}</Text>
                   {t.you && <Text style={{ backgroundColor: C.lime, color: C.purple, fontFamily: F.black, fontSize: 10, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4, overflow: "hidden" }}>You</Text>}
                 </View>
-                <Text style={{ color: fade(C.white, 0.5), fontFamily: F.mono, fontSize: 11 }}>{short(t.address)} · {t.trades} {t.trades === 1 ? "trade" : "trades"} · {t.winRate.toFixed(0)}% win</Text>
+                <Text style={{ color: fade(C.white, 0.5), fontFamily: F.mono, fontSize: 8 }}>{short(t.address)} · {t.trades} {t.trades === 1 ? "trade" : "trades"} · {t.winRate.toFixed(0)}% win</Text>
               </View>
               <View style={{ alignItems: "flex-end" }}>
                 <Text style={{ color: t.pnl >= 0 ? C.lime : C.red, fontFamily: F.black, fontSize: 17 }}>{t.pnl >= 0 ? "+" : ""}{t.pnl.toFixed(1)}</Text>
