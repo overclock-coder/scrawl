@@ -48,3 +48,7 @@ yarn-error.*
 # secrets
 google-services.json
 .env*
+
+# Anchor
+/anchor/target
+/anchor/.anchor
