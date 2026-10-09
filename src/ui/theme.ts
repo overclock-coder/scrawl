@@ -12,10 +12,10 @@ export const C = {
 
 export const F = {
   venite: "Venite",
-  // Pixelify Sans carries the UI text (no 900 weight, so "black" shares bold); Press Start 2P is for numbers.
-  regular: "PixelifySans_400Regular",
-  bold: "PixelifySans_700Bold",
-  black: "PixelifySans_700Bold",
+  // Chakra Petch carries the UI text (no 900 weight, so "black" shares bold); Press Start 2P is for numbers.
+  regular: "ChakraPetch_400Regular",
+  bold: "ChakraPetch_600SemiBold",
+  black: "ChakraPetch_700Bold",
   mono: "PressStart2P_400Regular",
 };
 
