@@ -107,7 +107,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
             </View>
           </View>
           <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)}>
-            <PriceChart width={chartW} height={190} series={visible} slots={visible.length} />
+            <PriceChart width={chartW} height={150} series={visible} slots={visible.length} />
           </View>
         </NeoBox>
 

@@ -32,7 +32,10 @@ export function NeoBox({
         pointerEvents="none"
         style={{ position: "absolute", top: shadow, left: shadow, right: -shadow, bottom: -shadow, backgroundColor: shadowColor, borderRadius: radius }}
       />
-      <View style={[{ backgroundColor: bg, borderColor: border, borderWidth, borderRadius: radius }, innerStyle]}>{children}</View>
+      <View style={[{ backgroundColor: C.bg, borderColor: border, borderWidth, borderRadius: radius }, innerStyle, { overflow: "hidden" }]}>
+        <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: bg }} />
+        {children}
+      </View>
     </View>
   );
 }
@@ -61,7 +64,7 @@ export function NeoButton({
   const v = {
     primary: { bg: C.lime, fg: C.purple, border: C.bg, shadow: C.bg },
     dark: { bg: C.purple, fg: C.lime, border: C.lime, shadow: C.lime },
-    light: { bg: fade(C.lime, 0.85), fg: C.purple, border: C.purple, shadow: C.bg },
+    light: { bg: C.lime, fg: C.purple, border: C.purple, shadow: C.bg },
     danger: { bg: "#EF4444", fg: C.white, border: C.bg, shadow: C.bg },
   }[kind];
   const off = down ? 1 : small ? 3 : 5;
@@ -106,12 +109,9 @@ export function Backdrop({ children, noise }: { children: React.ReactNode; noise
   );
 }
 
-export function Noise({ opacity = 0.12 }: { opacity?: number }) {
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Image source={require("../../assets/ui/noise.gif")} resizeMode="repeat" style={{ opacity, width: "100%", height: "100%" }} />
-    </View>
-  );
+/** The web page's grain overlay does not tile on Android's Image, so it is intentionally a no-op. */
+export function Noise(_: { opacity?: number }) {
+  return null;
 }
 
 export function Chipbadge({ text, bg = C.lime, fg = C.purple, border = C.purple }: { text: string; bg?: string; fg?: string; border?: string }) {

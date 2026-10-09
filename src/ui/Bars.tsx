@@ -21,7 +21,7 @@ function Pill({ icon, text, color }: { icon: number; text: string; color: string
   return (
     <NeoBox bg={fade(C.purple, 0.5)} border={C.lime} borderWidth={2} radius={8} shadow={3} shadowColor={C.lime} style={{ flexShrink: 1 }} innerStyle={{ flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
       <Image source={icon} style={{ width: 28, height: 28 }} resizeMode="contain" />
-      <Text numberOfLines={1} style={{ color, fontFamily: F.mono, fontSize: 12 }}>{text}</Text>
+      <Text numberOfLines={1} style={{ color, fontFamily: F.mono, fontSize: 11 }}>{text}</Text>
     </NeoBox>
   );
 }
@@ -38,7 +38,7 @@ export function BottomControls({
         <Square label="+" onPress={onZoomIn} />
       </View>
       <View style={{ flex: 1, flexDirection: "row", gap: 6, justifyContent: "center" }}>
-        <Pill icon={require("../../assets/ui/wallet.png")} text={money(balance)} color="#E5E7EB" />
+        <Pill icon={require("../../assets/ui/wallet.png")} text={balance.toLocaleString(undefined, { maximumFractionDigits: 0 })} color="#E5E7EB" />
         <Pill icon={require("../../assets/ui/coins.png")} text={pnl === null ? "+0.00" : `${pnl >= 0 ? "+" : ""}${pnl.toFixed(2)}`} color={pnlColor} />
       </View>
       {hasPoints ? (

@@ -21,7 +21,13 @@ export function useSeries(length: number) {
   useEffect(() => {
     const t = setInterval(() => {
       const p = feed.last ?? undefined;
-      setSeries((s) => [...s.slice(1), p]);
+      setSeries((s) => {
+        const next = [...s.slice(1), p];
+        // No history yet: backfill with the first price seen so the line is visible straight away.
+        const first = next.findIndex((v) => v !== undefined);
+        if (first > 0) for (let i = 0; i < first; i++) next[i] = next[first];
+        return next;
+      });
     }, 1000);
     return () => clearInterval(t);
   }, []);

@@ -27,7 +27,7 @@ export function PriceChart({ width, height, series, slots = series.length, overl
   if (vals.length === 0) return <View style={{ width, height }} />;
   let lo = Math.min(...vals);
   let hi = Math.max(...vals);
-  const spread = Math.max(hi - lo, Math.abs(hi) * 0.00008);
+  const spread = Math.max(hi - lo, Math.abs(hi) * 0.0006);
   lo -= spread * 0.18;
   hi += spread * 0.18;
   const x = (i: number) => padX + (i / Math.max(slots - 1, 1)) * (width - padX - rightPad);

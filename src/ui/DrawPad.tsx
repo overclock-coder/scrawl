@@ -86,6 +86,6 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
 const s = StyleSheet.create({
   pad: { height: PAD_HEIGHT, backgroundColor: fade(C.purple, 0.3), borderRadius: 12, borderWidth: 3, borderColor: fade(C.lime, 0.5), overflow: "hidden" },
   current: { position: "absolute", right: 12, top: PAD_HEIGHT / 2 - 16, color: fade(C.lime, 0.55), fontSize: 9, fontFamily: F.bold },
-  hint: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", flexDirection: "row" },
+  hint: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, paddingBottom: 90, alignItems: "center", justifyContent: "center", flexDirection: "row" },
   hintText: { color: fade(C.lime, 0.6), fontSize: 14, fontFamily: F.bold },
 });
