@@ -5,6 +5,7 @@ import { APP_IDENTITY, CLUSTER, RPC_URL } from "../config";
 import { MEMO_PROGRAM_ID } from "../logic/commit";
 import { solToLamports } from "../logic/onchain";
 import { openPositionIx, positionAddress } from "./program";
+import { onlyBenignChanges } from "./verify";
 import { secureGet, secureSet } from "../services/kv";
 
 const TOKEN_KEY = "mwa.authToken";
@@ -56,6 +57,17 @@ export async function disconnectWallet(): Promise<void> {
 }
 
 /**
+ * The wallet only signs; we submit through our own RPC. That does not depend on which network the wallet UI
+ * is set to, and lets us check what the wallet signed (it may add priority-fee instructions, nothing else).
+ */
+async function signAndSubmit(wallet: Web3MobileWallet, tx: Transaction): Promise<string> {
+  const [signed] = await wallet.signTransactions({ transactions: [tx] });
+  if (!onlyBenignChanges(tx, signed)) throw new Error("The wallet changed the transaction. Nothing was sent.");
+  const signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false, preflightCommitment: "confirmed" });
+  return signature;
+}
+
+/**
  * Write a memo on-chain, signed and sent by the wallet. The blockhash is fetched
  * after the wallet session is authorised (devnet blockhashes expire in ~36s), and
  * the transaction is built here so the memo text is exactly what we show the user.
@@ -71,7 +83,7 @@ export async function sendMemo(text: string): Promise<{ signature: string; addre
         data: Buffer.from(text, "utf8"),
       })
     );
-    const [signature] = await wallet.signAndSendTransactions({ transactions: [tx] });
+    const signature = await signAndSubmit(wallet, tx);
     return { signature, address: owner.toBase58() };
   });
 }
@@ -92,7 +104,7 @@ export async function openPositions(a: { count: number; stakeSol: number; levera
       tx.add(openPositionIx({ user: owner, nonce, amount: solToLamports(a.stakeSol), leverage: a.leverage, commitment: a.commitment, slot: i }));
       positions.push(positionAddress(owner, nonce).toBase58());
     }
-    const [signature] = await wallet.signAndSendTransactions({ transactions: [tx] });
+    const signature = await signAndSubmit(wallet, tx);
     return { signature, positions, address: owner.toBase58() };
   });
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { ASSET, BAND_PCT, MIN_STAKE_SOL, POSITION_RENT_SOL } from "../config";
@@ -74,11 +74,11 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
   const affordable = total + overhead <= funds;
   const canGo = ready && live && stake >= minStake && affordable && !busy;
 
-  const setMode = (p: boolean) => {
-    setPractice(p);
-    setAmount(session && !p ? "0.02" : "10");
+  // The wallet session restores after first render, and the unit changes with the mode: reset the stake to a sane default.
+  useEffect(() => {
+    setAmount(onchain ? "0.02" : "10");
     setMsg(null);
-  };
+  }, [onchain]);
   const lastPnl = history[0]?.score.pnl ?? null;
 
   const go = async () => {
@@ -169,7 +169,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
           {session && (
             <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
               {([[false, "◎ Devnet SOL"], [true, "Practice · ink"]] as const).map(([p, label]) => (
-                <Pressable key={label} onPress={() => setMode(p)} style={{ flex: 1 }}>
+                <Pressable key={label} onPress={() => setPractice(p)} style={{ flex: 1 }}>
                   <NeoBox bg={practice === p ? C.lime : C.purple} borderWidth={3} radius={10} shadow={3} shadowColor={practice === p ? C.purple : C.lime} innerStyle={{ paddingVertical: 8, alignItems: "center" }}>
                     <Text style={{ color: practice === p ? C.purple : C.lime, fontFamily: F.black, fontSize: 12 }}>{label}</Text>
                   </NeoBox>
