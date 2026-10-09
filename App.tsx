@@ -3,7 +3,7 @@ import { BackHandler, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
-import { ChakraPetch_400Regular, ChakraPetch_600SemiBold, ChakraPetch_700Bold } from "@expo-google-fonts/chakra-petch";
+import { Orbitron_400Regular, Orbitron_600SemiBold, Orbitron_800ExtraBold } from "@expo-google-fonts/orbitron";
 import { PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
 import { feed } from "./src/services/priceFeed";
 import { StoreProvider } from "./src/state/store";
@@ -85,9 +85,9 @@ function Shell() {
 export default function App() {
   const [loaded] = useFonts({
     Venite: require("./assets/fonts/VeniteAdoremus.ttf"),
-    ChakraPetch_400Regular,
-    ChakraPetch_600SemiBold,
-    ChakraPetch_700Bold,
+    Orbitron_400Regular,
+    Orbitron_600SemiBold,
+    Orbitron_800ExtraBold,
     PressStart2P_400Regular,
   });
   return (

@@ -12,10 +12,10 @@ export const C = {
 
 export const F = {
   venite: "Venite",
-  // Chakra Petch carries the UI text (no 900 weight, so "black" shares bold); Press Start 2P is for numbers.
-  regular: "ChakraPetch_400Regular",
-  bold: "ChakraPetch_600SemiBold",
-  black: "ChakraPetch_700Bold",
+  // Orbitron carries the UI text; Press Start 2P is for numbers.
+  regular: "Orbitron_400Regular",
+  bold: "Orbitron_600SemiBold",
+  black: "Orbitron_800ExtraBold",
   mono: "PressStart2P_400Regular",
 };
 
