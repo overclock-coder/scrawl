@@ -1,12 +1,12 @@
-import React, { useMemo, useRef, useState } from "react";
-import { PanResponder, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, PanResponder, StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { appendPoint } from "../logic/sampling";
 import { Point } from "../logic/types";
-import { C, R } from "./theme";
+import { C, F, fade } from "./theme";
 
-export const PAD_HEIGHT = 280;
+export const PAD_HEIGHT = 200;
 
 interface Props {
   stroke: Point[];
@@ -18,13 +18,20 @@ interface Props {
 
 export const toPath = (pts: Point[]) => pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
 
-/** Finger-drawn prediction canvas. Strokes are forced left-to-right (see appendPoint). */
+/** Finger-drawn prediction canvas with neon stroke. Strokes are forced left-to-right (see appendPoint). */
 export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
   const ref = useRef<Point[]>(stroke);
   ref.current = stroke;
   const widthRef = useRef(width);
   widthRef.current = width;
   const [active, setActive] = useState(false);
+  const nudge = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([Animated.timing(nudge, { toValue: 10, duration: 500, useNativeDriver: true }), Animated.timing(nudge, { toValue: 0, duration: 500, useNativeDriver: true })]));
+    loop.start();
+    return () => loop.stop();
+  }, [nudge]);
 
   const pan = useMemo(
     () =>
@@ -37,12 +44,11 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
           onDrawing?.(true);
           Haptics.selectionAsync().catch(() => {});
           const { locationX: x, locationY: y } = e.nativeEvent;
-          onStroke(appendPoint([], { x, y }, widthRef.current));
+          onStroke(appendPoint([], { x, y: Math.min(Math.max(y, 0), PAD_HEIGHT) }, widthRef.current));
         },
         onPanResponderMove: (e) => {
           const { locationX: x, locationY: y } = e.nativeEvent;
-          const clampedY = Math.min(Math.max(y, 0), PAD_HEIGHT);
-          const next = appendPoint(ref.current, { x, y: clampedY }, widthRef.current);
+          const next = appendPoint(ref.current, { x, y: Math.min(Math.max(y, 0), PAD_HEIGHT) }, widthRef.current);
           if (next !== ref.current) onStroke(next);
         },
         onPanResponderRelease: () => {
@@ -58,20 +64,19 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
     []
   );
 
+  const d = stroke.length > 1 ? toPath(stroke) : "";
   return (
     <View style={s.pad} onLayout={(e) => onSize(e.nativeEvent.layout.width)} {...pan.panHandlers}>
       <Svg width={width} height={PAD_HEIGHT} pointerEvents="none">
-        {[0.25, 0.5, 0.75].map((f) => (
-          <Line key={f} x1={0} x2={width} y1={PAD_HEIGHT * f} y2={PAD_HEIGHT * f} stroke={C.line} strokeDasharray={f === 0.5 ? undefined : "4 6"} />
-        ))}
-        {stroke.length > 1 && (
-          <Path d={toPath(stroke)} stroke={C.pred} strokeWidth={4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        )}
+        <Line x1={width * 0.025} x2={width * 0.975} y1={PAD_HEIGHT / 2} y2={PAD_HEIGHT / 2} stroke={fade(C.lime, 0.4)} strokeDasharray="6 6" />
+        {d ? <Path d={d} stroke={fade(C.lime, 0.25)} strokeWidth={16} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
+        {d ? <Path d={d} stroke={C.lime} strokeWidth={5} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
       </Svg>
+      <Text style={s.current}>current</Text>
       {stroke.length === 0 && !active && (
         <View style={s.hint} pointerEvents="none">
-          <Text style={s.hintText}>Draw where SOL goes next 60s</Text>
-          <Text style={s.hintSub}>left → right · centre line = price now</Text>
+          <Text style={s.hintText}>Draw your prediction</Text>
+          <Animated.Text style={[s.hintText, { marginLeft: 8, transform: [{ translateX: nudge }] }]}>→</Animated.Text>
         </View>
       )}
     </View>
@@ -79,8 +84,8 @@ export function DrawPad({ stroke, onStroke, onSize, width, onDrawing }: Props) {
 }
 
 const s = StyleSheet.create({
-  pad: { height: PAD_HEIGHT, backgroundColor: C.card, borderRadius: R.card, borderWidth: 1, borderColor: C.line, overflow: "hidden" },
-  hint: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
-  hintText: { color: C.text, fontSize: 17, fontWeight: "600" },
-  hintSub: { color: C.dim, marginTop: 6 },
+  pad: { height: PAD_HEIGHT, backgroundColor: fade(C.purple, 0.3), borderRadius: 12, borderWidth: 3, borderColor: fade(C.lime, 0.5), overflow: "hidden" },
+  current: { position: "absolute", right: 12, top: PAD_HEIGHT / 2 - 16, color: fade(C.lime, 0.55), fontSize: 9, fontFamily: F.bold },
+  hint: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", flexDirection: "row" },
+  hintText: { color: fade(C.lime, 0.6), fontSize: 14, fontFamily: F.bold },
 });

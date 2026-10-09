@@ -7,14 +7,13 @@ const config: ExpoConfig = {
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "dark",
-  backgroundColor: "#0B0B10",
+  backgroundColor: "#0a0014",
   android: {
     package: "app.scrawl.mobile",
     versionCode: 1,
     adaptiveIcon: {
-      backgroundColor: "#0B0B10",
+      backgroundColor: "#C1FF72",
       foregroundImage: "./assets/android-icon-foreground.png",
-      monochromeImage: "./assets/android-icon-monochrome.png",
     },
     predictiveBackGestureEnabled: false,
     permissions: ["VIBRATE"],
@@ -22,6 +21,7 @@ const config: ExpoConfig = {
   plugins: [
     "expo-secure-store",
     "expo-dev-client",
+    ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 200, backgroundColor: "#C1FF72" }],
     ["expo-build-properties", { android: { usesCleartextTraffic: false } }],
     "./plugins/withReleaseSigning",
   ],

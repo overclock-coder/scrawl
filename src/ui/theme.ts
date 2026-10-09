@@ -1,14 +1,26 @@
 export const C = {
-  bg: "#0B0B10",
-  card: "#15151D",
-  line: "#262633",
-  text: "#F3F3F7",
-  dim: "#8C8CA1",
-  accent: "#9BFF5A", // chalk green
-  pred: "#FF7AC6", // prediction ink
-  up: "#4ADE80",
-  down: "#FB7185",
-  warn: "#FBBF24",
+  bg: "#0a0014",
+  purple: "#1800AD",
+  lime: "#C1FF72",
+  pink: "#FF6B9D",
+  blue: "#6BFFFF",
+  white: "#FFFFFF",
+  red: "#F87171",
+  green: "#6EE7B7",
+  gold: "#FBBF24",
 };
 
-export const R = { card: 18, pill: 999 };
+export const F = {
+  venite: "Venite",
+  regular: "Inter_400Regular",
+  bold: "Inter_700Bold",
+  black: "Inter_900Black",
+  mono: "monospace",
+};
+
+export const RAINBOW = ["#ff0000", "#ff9900", "#ffff00", "#33ff00", "#0099ff", "#6633ff"];
+
+export const fade = (hex: string, a: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};

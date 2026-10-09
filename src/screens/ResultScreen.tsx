@@ -1,24 +1,28 @@
 import React, { useState } from "react";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { EXPLORER } from "../config";
 import { hashPrices, settleMemo } from "../logic/commit";
 import { classifyWalletError } from "../logic/walletErrors";
 import { sendMemo } from "../solana/wallet";
 import { useStore } from "../state/store";
 import { money } from "../ui/hooks";
-import { LineChart } from "../ui/LineChart";
-import { Button, Stat } from "../ui/kit";
-import { C } from "../ui/theme";
+import { NeoBox, NeoButton, Venite } from "../ui/neo";
+import { PriceChart } from "../ui/PriceChart";
+import { C, F, fade } from "../ui/theme";
 
-export function ResultScreen({ id, onAgain }: { id: string; onAgain: () => void }) {
+export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => void }) {
   const { history, session, patchRound } = useStore();
-  const r = history.find((h) => h.id === id);
-  const [width, setWidth] = useState(320);
+  const rounds = ids.map((id) => history.find((h) => h.id === id)).filter((r): r is NonNullable<typeof r> => !!r).sort((a, b) => a.startedAt - b.startedAt);
+  const [sel, setSel] = useState(0);
+  const [width, setWidth] = useState(300);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  if (!r) return null;
+  if (!rounds.length) return null;
 
-  const win = r.score.pnl >= 0;
+  const r = rounds[Math.min(sel, rounds.length - 1)];
+  const total = rounds.reduce((a, x) => a + x.score.pnl, 0);
+  const win = total >= 0;
+
   const settle = async () => {
     setBusy(true);
     setMsg(null);
@@ -32,45 +36,63 @@ export function ResultScreen({ id, onAgain }: { id: string; onAgain: () => void 
   };
 
   return (
-    <ScrollView contentContainerStyle={s.wrap}>
-      <Text style={[s.big, { color: win ? C.up : C.down }]}>{win ? "+" : ""}{money(r.score.pnl)} ink</Text>
-      <Text style={s.sub}>{(r.score.accuracy * 100).toFixed(1)}% direction accuracy · {r.score.correct}/{r.score.compared} moves</Text>
-
-      <View style={s.chart} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-        <LineChart width={width} height={220} predicted={r.predicted} actual={r.actual} />
+    <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 28 }}>
+      <View style={{ alignItems: "center", marginVertical: 8 }}>
+        <Text style={{ color: fade(C.white, 0.7), fontFamily: F.bold, fontSize: 12 }}>{rounds.length > 1 ? `BATCH PnL · ${rounds.length} positions` : "ROUND PnL"}</Text>
+        <Venite size={40} color={win ? C.lime : "#FCA5A5"} off={3}>{`${win ? "+" : ""}${money(total)}`}</Venite>
+        <Text style={{ color: fade(C.white, 0.7), fontFamily: F.regular }}>ink</Text>
       </View>
 
-      <View style={s.row}>
-        <Stat label="Stake" value={money(r.stake)} />
-        <Stat label="Leverage" value={`${r.leverage}x`} />
-        <Stat label="Payout" value={money(r.score.payout)} color={win ? C.up : C.down} />
+      {rounds.length > 1 && (
+        <View style={{ flexDirection: "row", gap: 8, marginBottom: 10 }}>
+          {rounds.map((x, i) => (
+            <Pressable key={x.id} onPress={() => setSel(i)} style={{ flex: 1 }}>
+              <NeoBox bg={i === sel ? C.lime : C.purple} border={C.lime} borderWidth={3} radius={10} shadow={3} shadowColor={i === sel ? C.purple : C.lime} innerStyle={{ paddingVertical: 8, alignItems: "center" }}>
+                <Text style={{ color: i === sel ? C.purple : C.lime, fontFamily: F.black, fontSize: 12 }}>#{i + 1}</Text>
+                <Text style={{ color: i === sel ? C.purple : x.score.pnl >= 0 ? C.green : "#FCA5A5", fontFamily: F.mono, fontSize: 11 }}>{x.score.pnl >= 0 ? "+" : ""}{x.score.pnl.toFixed(2)}</Text>
+              </NeoBox>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      <NeoBox shadow={6} radius={16} innerStyle={{ padding: 10, overflow: "hidden" }}>
+        <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 15 }}>{(r.score.accuracy * 100).toFixed(1)}% accuracy</Text>
+        <Text style={{ color: fade(C.white, 0.6), fontFamily: F.regular, fontSize: 12, marginBottom: 6 }}>{r.score.correct}/{r.score.compared} price moves called right</Text>
+        <View onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+          <PriceChart width={width} height={220} series={r.actual} overlay={r.predicted} cat={false} />
+        </View>
+      </NeoBox>
+
+      <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+        {[
+          ["Stake", money(r.stake)],
+          ["Leverage", `${r.leverage}x`],
+          ["Payout", money(r.score.payout)],
+        ].map(([k, v]) => (
+          <NeoBox key={k} bg={fade(C.purple, 0.6)} border={C.lime} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} style={{ flex: 1 }} innerStyle={{ padding: 10 }}>
+            <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 17 }}>{v}</Text>
+            <Text style={{ color: fade(C.white, 0.6), fontFamily: F.regular, fontSize: 11 }}>{k}</Text>
+          </NeoBox>
+        ))}
       </View>
-      <Text style={s.fine}>50% accuracy is break-even · 2% fee on profit only ({money(r.score.fee)} taken)</Text>
+      <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11, marginTop: 8 }}>
+        50% accuracy is break-even · 2% fee on profit only ({money(r.score.fee)} taken)
+      </Text>
 
-      <Text style={s.h}>Proof on Solana (devnet)</Text>
-      {r.commitSig ? (
-        <Button kind="ghost" title="View commit transaction" onPress={() => Linking.openURL(EXPLORER(r.commitSig as string))} style={{ marginBottom: 10 }} />
-      ) : (
-        <Text style={s.fine}>This was a practice round. Connect a wallet to seal drawings.</Text>
-      )}
-      {r.commitSig && !r.settleSig && session && (
-        <Button title="Settle result on-chain" onPress={settle} busy={busy} style={{ marginBottom: 10 }} />
-      )}
-      {r.settleSig && <Button kind="ghost" title="View settlement transaction" onPress={() => Linking.openURL(EXPLORER(r.settleSig as string))} style={{ marginBottom: 10 }} />}
-      {msg && <Text style={s.err}>{msg}</Text>}
+      <Venite size={16} off={2} style={{ marginTop: 18, marginBottom: 10 }}>Proof on Solana (devnet)</Venite>
+      <View style={{ gap: 12 }}>
+        {r.commitSig ? (
+          <NeoButton kind="light" small title="View commit transaction ↗" onPress={() => Linking.openURL(EXPLORER(r.commitSig as string))} />
+        ) : (
+          <Text style={{ color: fade(C.white, 0.6), fontFamily: F.regular, fontSize: 12 }}>Practice round. Connect a wallet to seal drawings.</Text>
+        )}
+        {r.commitSig && !r.settleSig && session && <NeoButton kind="dark" small title={busy ? "Waiting for wallet…" : "Settle result on-chain"} disabled={busy} onPress={settle} />}
+        {r.settleSig && <NeoButton kind="light" small title="View settlement transaction ↗" onPress={() => Linking.openURL(EXPLORER(r.settleSig as string))} />}
+      </View>
+      {msg && <Text style={{ color: C.gold, marginTop: 8, fontFamily: F.regular }}>{msg}</Text>}
 
-      <Button title="Draw again" onPress={onAgain} style={{ marginTop: 8 }} />
+      <NeoButton title="Draw again 🚀" onPress={onAgain} style={{ marginTop: 22 }} />
     </ScrollView>
   );
 }
-
-const s = StyleSheet.create({
-  wrap: { padding: 16, paddingBottom: 40 },
-  big: { fontSize: 44, fontWeight: "900", textAlign: "center", marginTop: 8 },
-  sub: { color: C.dim, textAlign: "center", marginBottom: 16 },
-  chart: { backgroundColor: C.card, borderRadius: 18, borderWidth: 1, borderColor: C.line, overflow: "hidden", marginBottom: 12 },
-  row: { flexDirection: "row", gap: 8 },
-  fine: { color: C.dim, fontSize: 12, marginTop: 10, marginBottom: 8 },
-  h: { color: C.text, fontWeight: "800", fontSize: 16, marginTop: 14, marginBottom: 10 },
-  err: { color: C.warn, marginBottom: 8 },
-});

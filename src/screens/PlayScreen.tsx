@@ -1,23 +1,29 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { ASSET, BAND_PCT, EXPLORER } from "../config";
+import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { ASSET, BAND_PCT } from "../config";
 import { commitMemo, hashPrices } from "../logic/commit";
 import { MIN_COVERAGE, coverage, strokeToPrices } from "../logic/sampling";
 import { MAX_LEVERAGE } from "../logic/scoring";
 import { Point } from "../logic/types";
 import { classifyWalletError } from "../logic/walletErrors";
 import { feed } from "../services/priceFeed";
-import { useStore } from "../state/store";
 import { sendMemo } from "../solana/wallet";
+import { useStore } from "../state/store";
+import { BottomControls } from "../ui/Bars";
 import { DrawPad, PAD_HEIGHT } from "../ui/DrawPad";
-import { useFeed, money } from "../ui/hooks";
-import { Button, Chip } from "../ui/kit";
-import { C } from "../ui/theme";
-import { WalletChip } from "./WalletChip";
+import { money, useFeed, useSeries } from "../ui/hooks";
+import { Chipbadge, NeoBox, Venite } from "../ui/neo";
+import { PriceChart } from "../ui/PriceChart";
+import { SlotLever } from "../ui/SlotLever";
+import { C, F, fade } from "../ui/theme";
 
 export interface RoundPlan {
   predicted: number[];
+  /** Stake per position. */
   stake: number;
+  /** Number of back-to-back 60s positions (the 1-5 min horizon). */
+  count: number;
   leverage: number;
   startPrice: number;
   commitHash: string;
@@ -25,36 +31,50 @@ export interface RoundPlan {
   startedAt: number;
 }
 
-const STAKES = [10, 25, 50, 100];
+const CHIPS = [
+  require("../../assets/ui/chip-1.png"),
+  require("../../assets/ui/chip-2.png"),
+  require("../../assets/ui/chip-3.png"),
+  require("../../assets/ui/chip-4.png"),
+  require("../../assets/ui/chip-5.png"),
+];
 const LEVS = [5, 10, 25, 50, MAX_LEVERAGE];
+const ZOOMS = [30, 60, 90, 120];
 
 export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
-  const { balance, streak, session, bonusAvailable, claimBonus, stakeOut } = useStore();
+  const { balance, session, stakeOut, history } = useStore();
   const { price, status } = useFeed();
+  const series = useSeries(120);
+  const [zoom, setZoom] = useState(2);
   const [stroke, setStroke] = useState<Point[]>([]);
-  const [width, setWidth] = useState(320);
+  const [padW, setPadW] = useState(300);
+  const [chartW, setChartW] = useState(300);
   const [drawing, setDrawing] = useState(false);
-  const [stake, setStake] = useState(25);
+  const [minutes, setMinutes] = useState(1);
+  const [amount, setAmount] = useState("10");
   const [lev, setLev] = useState(10);
+  const [levOpen, setLevOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const ready = coverage(stroke, width) >= MIN_COVERAGE;
+  const stake = Math.max(0, Number(amount) || 0);
+  const total = stake * minutes;
+  const ready = coverage(stroke, padW) >= MIN_COVERAGE;
   const live = status === "live" && price != null;
-  const canGo = ready && live && stake <= balance;
+  const canGo = ready && live && stake >= 1 && total <= balance && !busy;
+  const lastPnl = history[0]?.score.pnl ?? null;
 
   const go = async () => {
     const startPrice = feed.last;
     if (!startPrice) return;
     setMsg(null);
-    const predicted = strokeToPrices(stroke, width, PAD_HEIGHT, startPrice, BAND_PCT);
+    const predicted = strokeToPrices(stroke, padW, PAD_HEIGHT, startPrice, BAND_PCT);
     const commitHash = hashPrices(predicted);
     let commitSig: string | undefined;
-
     if (session) {
       setBusy(true);
       try {
-        // The drawing is committed on-chain BEFORE the 60s window begins.
+        // The drawing is committed on-chain BEFORE the first 60s window begins.
         commitSig = (await sendMemo(commitMemo(commitHash, ASSET, lev, Date.now()))).signature;
       } catch (e) {
         setMsg(classifyWalletError(e).message);
@@ -63,82 +83,119 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
       }
       setBusy(false);
     }
-    stakeOut(stake);
-    onStart({ predicted, stake, leverage: lev, startPrice, commitHash, commitSig, startedAt: Date.now() });
+    stakeOut(total);
+    onStart({ predicted, stake, count: minutes, leverage: lev, startPrice, commitHash, commitSig, startedAt: Date.now() });
     setStroke([]);
   };
 
+  const visible = series.slice(-ZOOMS[zoom]);
+  const statusLine = !live ? "Connecting to the market…" : total > balance ? "Not enough ink for that stake" : stake < 1 ? "Minimum stake is 1" : null;
+
   return (
-    <ScrollView
-      contentContainerStyle={s.wrap}
-      scrollEnabled={!drawing}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={s.top}>
-        <View>
-          <Text style={s.pair}>{ASSET}/USDT</Text>
-          <Text style={s.price}>{price ? `$${money(price)}` : "…"}</Text>
-          <Text style={[s.live, { color: live ? C.up : C.warn }]}>{live ? "● live" : status === "stale" ? "○ reconnecting" : "○ connecting"}</Text>
-        </View>
-        <WalletChip />
-      </View>
+    <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 20 }} scrollEnabled={!drawing} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        {/* Main chart card */}
+        <NeoBox shadow={6} radius={16} style={{ marginBottom: 12 }} innerStyle={{ overflow: "hidden", padding: 10 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+            <View>
+              <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>{ASSET}/USDT</Text>
+              <Text style={{ color: C.white, fontFamily: F.mono, fontSize: 24, fontWeight: "700" }}>{price ? `$${money(price)}` : "…"}</Text>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: live ? C.lime : C.gold, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.purple }} />
+              <Text style={{ color: C.purple, fontFamily: F.black, fontSize: 10, letterSpacing: 1 }}>{live ? "LIVE" : "WAIT"}</Text>
+            </View>
+          </View>
+          <View onLayout={(e) => setChartW(e.nativeEvent.layout.width)}>
+            <PriceChart width={chartW} height={190} series={visible} slots={visible.length} />
+          </View>
+        </NeoBox>
 
-      <View style={s.row}>
-        <Text style={s.meta}>🔥 {streak.count}-day streak</Text>
-        <Text style={s.meta}>◎ {money(balance)} ink</Text>
-      </View>
-      {bonusAvailable && (
-        <Button kind="ghost" title="Claim daily ink +100" onPress={() => claimBonus()} style={{ height: 44, marginBottom: 12 }} />
-      )}
+        {/* Pattern drawing box */}
+        <NeoBox shadow={6} radius={16} innerStyle={{ padding: 12 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <Venite size={19} off={2}>Draw your futures</Venite>
+            {stroke.length > 0 && <Chipbadge text={`${stroke.length} pts`} border={C.purple} />}
+          </View>
+          <DrawPad stroke={stroke} onStroke={setStroke} onSize={setPadW} width={padW} onDrawing={setDrawing} />
 
-      <DrawPad stroke={stroke} onStroke={setStroke} onSize={setWidth} width={width} onDrawing={setDrawing} />
-      <View style={s.rowEnd}>
-        <Button kind="ghost" title="Clear" onPress={() => setStroke([])} disabled={!stroke.length} style={{ height: 40, paddingHorizontal: 18 }} />
-      </View>
+          <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.regular, fontSize: 13, marginTop: 12, marginBottom: 2 }}>Choose time horizon & resolve</Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 2 }}>
+            {CHIPS.map((src, i) => {
+              const on = minutes === i + 1;
+              return (
+                <Pressable key={i} onPress={() => { Haptics.selectionAsync().catch(() => {}); setMinutes(i + 1); }} style={{ opacity: on ? 1 : 0.65, transform: [{ scale: on ? 1.12 : 1 }], shadowColor: C.lime, elevation: on ? 12 : 0 }}>
+                  <Image source={src} style={{ width: 58, height: 58 }} resizeMode="contain" />
+                </Pressable>
+              );
+            })}
+          </View>
 
-      <Text style={s.label}>Stake (ink)</Text>
-      <View style={s.chips}>
-        {STAKES.map((v) => (
-          <Chip key={v} label={String(v)} on={stake === v} onPress={() => setStake(v)} disabled={v > balance} />
-        ))}
-      </View>
-      <Text style={s.label}>Leverage</Text>
-      <View style={s.chips}>
-        {LEVS.map((v) => (
-          <Chip key={v} label={`${v}x`} on={lev === v} onPress={() => setLev(v)} />
-        ))}
-      </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
+            <NeoBox bg={C.purple} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} style={{ flex: 1 }} innerStyle={{ paddingHorizontal: 12, flexDirection: "row", alignItems: "center" }}>
+              <TextInput
+                value={amount}
+                onChangeText={(t) => setAmount(t.replace(/[^0-9.]/g, ""))}
+                keyboardType="numeric"
+                style={{ flex: 1, color: C.lime, fontFamily: F.black, fontSize: 15, paddingVertical: 8 }}
+                placeholder="10"
+                placeholderTextColor={fade(C.lime, 0.4)}
+              />
+              <Text style={{ color: fade(C.lime, 0.7), fontFamily: F.bold, fontSize: 11 }}>INK{minutes > 1 ? ` ×${minutes}` : ""}</Text>
+            </NeoBox>
+            <Pressable onPress={() => setLevOpen(true)}>
+              <NeoBox bg={C.purple} borderWidth={3} radius={12} shadow={3} shadowColor={C.lime} innerStyle={{ paddingHorizontal: 14, paddingVertical: 11 }}>
+                <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 15 }}>{lev}x ▾</Text>
+              </NeoBox>
+            </Pressable>
+          </View>
 
-      <Text style={s.note}>
-        {session
-          ? "Your drawing is hashed and sealed on Solana devnet with your wallet before the clock starts."
-          : "Connect a wallet to seal your drawing on Solana. Without one, rounds are practice only."}
-      </Text>
-      {msg && <Text style={s.err}>{msg}</Text>}
+          <View style={{ marginTop: 10 }}>
+            <SlotLever text="SCRAWL" onPull={go} disabled={!canGo} />
+          </View>
+          <Text style={{ color: fade(C.lime, 0.6), fontFamily: F.regular, fontSize: 11, textAlign: "center", marginTop: 2 }}>
+            {ready ? "Drag the lever down or tap the ball" : "Draw across the pad to arm the lever"}
+          </Text>
+        </NeoBox>
 
-      <Button
-        title={busy ? "Waiting for wallet…" : ready ? "Lock it in · 60s" : "Draw across the pad first"}
-        onPress={go}
-        busy={busy}
-        disabled={!canGo}
-        style={{ marginTop: 8 }}
+        {/* Status */}
+        {(busy || msg || statusLine) && (
+          <View style={{ marginTop: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, borderWidth: 2, borderColor: C.lime, borderRadius: 12, backgroundColor: fade(C.bg, 0.6) }}>
+            <Text style={{ fontSize: 18 }}>🎯</Text>
+            <Text style={{ color: msg ? C.gold : C.lime, fontFamily: F.bold, fontSize: 13, flexShrink: 1 }}>
+              {busy ? "Sealing your drawing in your wallet…" : msg ?? statusLine}
+            </Text>
+          </View>
+        )}
+        <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11, textAlign: "center", marginTop: 12, lineHeight: 16 }}>
+          {session ? "Drawing is hashed and sealed on Solana devnet before the clock starts." : "Connect a wallet (top right) to seal drawings on Solana. Without one, rounds are practice only."}
+        </Text>
+      </ScrollView>
+
+      <BottomControls
+        onZoomIn={() => setZoom((z) => Math.max(0, z - 1))}
+        onZoomOut={() => setZoom((z) => Math.min(ZOOMS.length - 1, z + 1))}
+        balance={balance}
+        pnl={lastPnl}
+        minutes={minutes}
+        hasPoints={stroke.length > 0}
+        onClear={() => setStroke([])}
       />
-    </ScrollView>
+
+      <Modal visible={levOpen} transparent animationType="fade" onRequestClose={() => setLevOpen(false)}>
+        <Pressable onPress={() => setLevOpen(false)} style={{ flex: 1, backgroundColor: "rgba(10,0,20,0.85)", justifyContent: "center", padding: 40 }}>
+          <NeoBox shadow={8} innerStyle={{ padding: 14, gap: 10 }}>
+            <Venite size={18} off={2}>Leverage</Venite>
+            {LEVS.map((v) => (
+              <Pressable key={v} onPress={() => { setLev(v); setLevOpen(false); }}>
+                <NeoBox bg={v === lev ? C.lime : C.purple} border={C.lime} borderWidth={3} radius={10} shadow={3} shadowColor={v === lev ? C.purple : C.lime} innerStyle={{ paddingVertical: 10, alignItems: "center" }}>
+                  <Text style={{ color: v === lev ? C.purple : C.lime, fontFamily: F.black, fontSize: 16 }}>{v}x</Text>
+                </NeoBox>
+              </Pressable>
+            ))}
+          </NeoBox>
+        </Pressable>
+      </Modal>
+    </View>
   );
 }
-
-const s = StyleSheet.create({
-  wrap: { padding: 16, paddingBottom: 32 },
-  top: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
-  pair: { color: C.dim, fontWeight: "700" },
-  price: { color: C.text, fontSize: 34, fontWeight: "800" },
-  live: { fontSize: 12, marginTop: 2 },
-  row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 12 },
-  rowEnd: { flexDirection: "row", justifyContent: "flex-end", marginTop: 10 },
-  meta: { color: C.dim, fontWeight: "600" },
-  label: { color: C.dim, marginTop: 8, marginBottom: 8, fontWeight: "600" },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  note: { color: C.dim, fontSize: 13, marginTop: 16, lineHeight: 18 },
-  err: { color: C.warn, marginTop: 10 },
-});
