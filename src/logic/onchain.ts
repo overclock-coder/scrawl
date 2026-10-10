@@ -69,6 +69,8 @@ export interface PositionAccount {
 }
 
 export const POSITION_SIZE = 8 + 32 + 8 + 8 + 2 + 8 + 32 + 1 + 8 + 32 + 8 + 1;
+/** Byte offset of `is_open` inside a Position account (used to ask the RPC for open positions only). */
+export const POSITION_IS_OPEN_OFFSET = 8 + 32 + 8 + 8 + 2 + 8 + 32;
 
 export function decodePosition(data: Uint8Array): PositionAccount {
   if (data.length < POSITION_SIZE) throw new Error("position account too short");
