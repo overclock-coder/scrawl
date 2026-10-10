@@ -31,7 +31,7 @@ def frame(phase):
 subs = {
     "VENITE": data(ROOT / "assets/fonts/VeniteAdoremus.ttf", "font/ttf"),
     "LOGO": data(ROOT / "assets/logo.png", "image/png"),
-    "NYAN": data(ROOT / "assets/ui/nyan.png", "image/png"),
+    "NYAN_SHEET": data(HERE / "img/nyan-sheet.png", "image/png"),
     "FRAME_A": frame(0),
     "FRAME_B": frame(1),
     "DRAW": data(HERE / "img/draw.png", "image/png", 640),

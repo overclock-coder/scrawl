@@ -73,10 +73,16 @@ em { font-style: normal; color: var(--lime); font-weight: 600; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .25) 18%, rgba(0, 0, 0, .7) 52%, #000 100%);
   mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .25) 18%, rgba(0, 0, 0, .7) 52%, #000 100%);
 }
-.cat { height: 100%; width: auto; max-width: none; image-rendering: pixelated; animation: bob .4s steps(1, end) infinite; }
+/* 4-frame sprite sheet: legs alternate forward and back while the body bobs. */
+.cat {
+  height: 100%; aspect-ratio: 214 / 134; flex: none; image-rendering: pixelated;
+  background: url("{{NYAN_SHEET}}") 0 0 / 400% 100% no-repeat;
+  animation: legs .48s steps(1, end) infinite, bob .48s steps(1, end) infinite;
+}
 @keyframes dash { from { transform: translateX(-100%); } to { transform: translateX(100vw); } }
 @keyframes wave { 0% { background-image: url("{{FRAME_A}}"); } 50% { background-image: url("{{FRAME_B}}"); } }
 @keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes legs { 0% { background-position: 0% 0; } 25% { background-position: 33.333% 0; } 50% { background-position: 66.667% 0; } 75% { background-position: 100% 0; } }
 @media (prefers-reduced-motion: reduce) { .runner { animation: none; transform: translateX(10vw); } .trail, .cat { animation: none; } }
 .slide > .title-wrap { position: relative; margin-block: auto; }
 .slide.hero { padding-bottom: calc(96px + clamp(70px, 11vw, 150px)); }
@@ -152,7 +158,7 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
       <p class="lead" style="margin-top:10px"><em>Draw your futures.</em> Sketch the next 60 seconds of SOL, stake it on Solana, get scored on every move.</p>
       <p class="tag" style="margin-top:18px">Solana Mobile hackathon / Mobile track / Android / devnet</p>
     </div>
-    <div class="run" aria-hidden="true"><div class="runner"><div class="trail"></div><img class="cat" src="{{NYAN}}" alt=""></div></div>
+    <div class="run" aria-hidden="true"><div class="runner"><div class="trail"></div><div class="cat"></div></div></div>
   </section>
 
   <!-- 2 problem -->
@@ -355,7 +361,7 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
       <h1 style="margin-top:14px">Draw. Stake.<br>Get scored.</h1>
       <p class="lead" style="margin-top:14px">A futures game that fits in one thumb, on Solana Mobile.</p>
     </div>
-    <div class="run" aria-hidden="true"><div class="runner"><div class="trail"></div><img class="cat" src="{{NYAN}}" alt=""></div></div>
+    <div class="run" aria-hidden="true"><div class="runner"><div class="trail"></div><div class="cat"></div></div></div>
   </section>
 </main>
 
