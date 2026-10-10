@@ -171,6 +171,15 @@ code { font-family: var(--pixel); font-size: .6em; color: var(--lime); overflow-
 .round:active:not(:disabled), .start:active { transform: translateY(3px); box-shadow: 0 2px 0 #0a0014; }
 .start:active { transform: rotate(-12deg) translateY(3px); }
 .round:disabled { opacity: .35; cursor: default; }
+/* ?pdf: a still, bar-free render used to export the slides as a PDF */
+.pdf .bar { display: none; }
+.pdf body { display: grid; place-items: center; }
+.pdf .deck { width: min(100vw, 177.78vh); height: min(56.25vw, 100vh); }
+.pdf .slide { padding-bottom: clamp(20px, 4vw, 48px); }
+.pdf .slide.hero { padding-bottom: calc(clamp(20px, 4vw, 48px) + clamp(70px, 11vw, 150px)); }
+.pdf .run { bottom: clamp(20px, 3vw, 40px); }
+.pdf .runner, .pdf .trail, .pdf .cat { animation: none; }
+.pdf .runner { transform: translateX(33vw); }
 button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
 @media (max-width: 640px) {
   .pad, .start { display: none; }
@@ -477,6 +486,7 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
   }, { passive: false });
   window.addEventListener('resize', function () { go(cur, true); });
 
+  if (/[?&]pdf\b/.test(location.search)) document.documentElement.className += ' pdf';
   var m = /^#s(\d+)$/.exec(location.hash);
   go(m ? parseInt(m[1], 10) - 1 : 0, true);
   paint();
