@@ -127,25 +127,57 @@ em { font-style: normal; color: var(--lime); font-weight: 600; }
 .kv dd { margin: 0; overflow-wrap: anywhere; }
 code { font-family: var(--pixel); font-size: .6em; color: var(--lime); overflow-wrap: anywhere; line-height: 1.8; }
 
-/* controls */
+/* controls: a game-pad bar. D-pad and A/B both move through the stages; START goes back to the first. */
 .bar {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px clamp(16px, 5vw, 72px) calc(12px + env(safe-area-inset-bottom, 0px));
-  background: rgba(10, 0, 20, .92); border-top: 4px solid var(--lime);
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; gap: clamp(10px, 2vw, 28px);
+  padding: 10px clamp(14px, 4vw, 56px) calc(10px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, #1d0f55 0%, #0a0014 100%); border-top: 4px solid var(--lime);
+  box-shadow: 0 -6px 0 var(--indigo);
 }
-.count { font-family: var(--pixel); font-size: 11px; color: var(--lime); white-space: nowrap; }
-.dots { display: flex; gap: 6px; flex: 1; justify-content: center; flex-wrap: wrap; }
-.dots button { width: 10px; height: 10px; padding: 0; border: 2px solid var(--lime); background: transparent; cursor: pointer; border-radius: 0; }
-.dots button[aria-current="true"] { background: var(--lime); }
-.nav { display: flex; gap: 8px; }
-.nav button {
-  font-family: var(--pixel); font-size: 12px; width: 44px; height: 40px; background: var(--lime); color: var(--indigo);
-  border: 3px solid var(--night); border-radius: 10px; box-shadow: 3px 3px 0 var(--indigo); cursor: pointer;
+.pad { display: flex; align-items: center; flex: none; }
+.arm {
+  width: 46px; height: 40px; padding: 0; background: #2a1a78; border: 3px solid var(--lime); cursor: pointer; display: grid; place-items: center;
+  box-shadow: 0 4px 0 #0a0014;
 }
-.nav button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--indigo); }
-.nav button:disabled { opacity: .35; cursor: default; }
+.arm.l { border-radius: 12px 4px 4px 12px; border-right-width: 0; }
+.arm.r { border-radius: 4px 12px 12px 4px; border-left-width: 0; }
+.arm:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #0a0014; }
+.arm:disabled { opacity: .35; cursor: default; }
+.tri { width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+.l .tri { border-right: 12px solid var(--lime); }
+.r .tri { border-left: 12px solid var(--lime); }
+.hub { width: 22px; height: 40px; background: #2a1a78; border-block: 3px solid var(--lime); box-shadow: 0 4px 0 #0a0014; position: relative; }
+.hub::after { content: ""; position: absolute; inset: 11px 6px; background: #120a38; border-radius: 50%; }
+
+.hud { flex: 1; min-width: 0; display: grid; gap: 7px; }
+.stage { display: flex; align-items: baseline; gap: 12px; font-family: var(--pixel); font-size: 10px; color: var(--lime); white-space: nowrap; overflow: hidden; }
+.stage span:last-child { color: var(--pink); overflow: hidden; text-overflow: ellipsis; }
+.xp { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; padding: 4px; background: #05000d; border: 3px solid var(--lime); border-radius: 8px; }
+.xp button { height: 12px; padding: 0; border: 0; border-radius: 2px; background: #2a1a78; cursor: pointer; }
+.xp button.on { background: var(--lime); }
+.xp button[aria-current="true"] { background: var(--pink); box-shadow: 0 0 0 2px #05000d, 0 0 0 4px var(--pink); }
+
+.btns { display: flex; align-items: center; gap: 12px; flex: none; }
+.start {
+  font-family: var(--pixel); font-size: 8px; padding: 9px 11px; background: #2a1a78; color: var(--lime); border: 3px solid var(--lime);
+  border-radius: 999px; cursor: pointer; box-shadow: 0 3px 0 #0a0014; transform: rotate(-12deg);
+}
+.round {
+  width: 46px; height: 46px; padding: 0; border-radius: 50%; border: 3px solid #0a0014; font-family: var(--pixel); font-size: 13px; cursor: pointer;
+  box-shadow: 0 5px 0 #0a0014, inset 0 -4px 0 rgba(0, 0, 0, .22);
+}
+.round.a { background: var(--lime); color: var(--indigo); }
+.round.b { background: var(--pink); color: var(--indigo); margin-top: 14px; }
+.round:active:not(:disabled), .start:active { transform: translateY(3px); box-shadow: 0 2px 0 #0a0014; }
+.start:active { transform: rotate(-12deg) translateY(3px); }
+.round:disabled { opacity: .35; cursor: default; }
 button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
-@media (max-width: 560px) { .dots { display: none; } .count { flex: 1; } }
+@media (max-width: 640px) {
+  .pad, .start { display: none; }
+  .stage { font-size: 9px; gap: 8px; }
+  .xp button { height: 10px; }
+  .round { width: 42px; height: 42px; }
+}
 </style>
 
 <main class="deck" id="deck" aria-label="Scrawl pitch deck">
@@ -366,11 +398,19 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
 </main>
 
 <nav class="bar" aria-label="Slides">
-  <span class="count" id="count">01 / 12</span>
-  <div class="dots" id="dots"></div>
-  <div class="nav">
-    <button id="prev" aria-label="Previous slide">&lt;</button>
-    <button id="next" aria-label="Next slide">&gt;</button>
+  <div class="pad">
+    <button class="arm l" id="left" aria-label="Previous slide"><span class="tri"></span></button>
+    <span class="hub" aria-hidden="true"></span>
+    <button class="arm r" id="right" aria-label="Next slide"><span class="tri"></span></button>
+  </div>
+  <div class="hud">
+    <div class="stage"><span id="count">STAGE 01/12</span><span id="name"></span></div>
+    <div class="xp" id="xp"></div>
+  </div>
+  <div class="btns">
+    <button class="start" id="start" aria-label="Back to the first slide">START</button>
+    <button class="round b" id="prev" aria-label="Previous slide">B</button>
+    <button class="round a" id="next" aria-label="Next slide">A</button>
   </div>
 </nav>
 
@@ -378,25 +418,30 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
 (function () {
   var deck = document.getElementById('deck');
   var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
-  var dots = document.getElementById('dots');
+  var xp = document.getElementById('xp');
   var count = document.getElementById('count');
-  var prev = document.getElementById('prev');
-  var next = document.getElementById('next');
+  var nameEl = document.getElementById('name');
+  var prevBtns = [document.getElementById('prev'), document.getElementById('left')];
+  var nextBtns = [document.getElementById('next'), document.getElementById('right')];
   var cur = 0;
 
   slides.forEach(function (s, i) {
     var b = document.createElement('button');
-    b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    b.setAttribute('aria-label', 'Go to slide ' + (i + 1) + ': ' + s.getAttribute('aria-label'));
     b.addEventListener('click', function () { go(i); });
-    dots.appendChild(b);
+    xp.appendChild(b);
   });
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function paint() {
-    count.textContent = pad(cur + 1) + ' / ' + pad(slides.length);
-    Array.prototype.forEach.call(dots.children, function (d, i) { d.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
-    prev.disabled = cur === 0;
-    next.disabled = cur === slides.length - 1;
+    count.textContent = 'STAGE ' + pad(cur + 1) + '/' + pad(slides.length);
+    nameEl.textContent = (slides[cur].getAttribute('aria-label') || '').toUpperCase();
+    Array.prototype.forEach.call(xp.children, function (d, i) {
+      d.className = i <= cur ? 'on' : '';
+      d.setAttribute('aria-current', i === cur ? 'true' : 'false');
+    });
+    prevBtns.forEach(function (b) { b.disabled = cur === 0; });
+    nextBtns.forEach(function (b) { b.disabled = cur === slides.length - 1; });
   }
   function go(i, instant) {
     cur = Math.max(0, Math.min(slides.length - 1, i));
@@ -409,8 +454,9 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
     var i = Math.round(deck.scrollLeft / Math.max(1, deck.clientWidth));
     if (i !== cur) { cur = i; paint(); }
   }, { passive: true });
-  prev.addEventListener('click', function () { go(cur - 1); });
-  next.addEventListener('click', function () { go(cur + 1); });
+  prevBtns.forEach(function (b) { b.addEventListener('click', function () { go(cur - 1); }); });
+  nextBtns.forEach(function (b) { b.addEventListener('click', function () { go(cur + 1); }); });
+  document.getElementById('start').addEventListener('click', function () { go(0); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
