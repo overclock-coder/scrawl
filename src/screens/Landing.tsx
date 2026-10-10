@@ -25,7 +25,7 @@ export function Landing({ onPlay, onBoard }: { onPlay: () => void; onBoard: () =
       <ScrollView contentContainerStyle={{ paddingTop: 36 }} showsVerticalScrollIndicator={false}>
         <View style={{ paddingHorizontal: 16, alignItems: "center" }}>
           <View style={{ shadowColor: C.lime, elevation: 18, borderRadius: 14 }}>
-            <Image source={require("../../assets/ui/logo.png")} style={{ width: 88, height: 88, borderRadius: 14 }} />
+            <Image source={require("../../assets/ui/logo.png")} style={{ width: 88, height: 88, borderRadius: 14, borderWidth: 3, borderColor: "#C1FF72" }} />
           </View>
           <Venite size={44} off={4} shadow={C.purple} style={{ letterSpacing: 8, marginTop: 14 }}>SCRAWL</Venite>
           <Text style={{ color: C.white, fontFamily: F.black, fontSize: 21, textAlign: "center", marginTop: 22, lineHeight: 28 }}>

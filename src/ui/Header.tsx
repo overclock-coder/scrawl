@@ -11,7 +11,7 @@ export function Header({ onWallet, status }: { onWallet: () => void; status?: st
     <View style={{ backgroundColor: fade(C.purple, 0.92), borderBottomWidth: 4, borderBottomColor: C.lime, paddingHorizontal: 12, paddingVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <View style={{ shadowColor: C.lime, elevation: 10, borderRadius: 8 }}>
-          <Image source={require("../../assets/ui/logo.png")} style={{ width: 42, height: 42, borderRadius: 8 }} />
+          <Image source={require("../../assets/ui/logo.png")} style={{ width: 42, height: 42, borderRadius: 8, borderWidth: 2, borderColor: "#C1FF72" }} />
         </View>
         <View>
           <Venite size={21} color={C.lime} shadow={C.bg} off={2} style={{ letterSpacing: 3 }}>SCRAWL</Venite>
