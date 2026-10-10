@@ -22,6 +22,7 @@ const config: ExpoConfig = {
     "expo-secure-store",
     "expo-dev-client",
     ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 240, backgroundColor: "#0B0721" }],
+    ["expo-notifications", { icon: "./assets/notification-icon.png", color: "#C1FF72" }],
     ["expo-build-properties", { android: { usesCleartextTraffic: false } }],
     "./plugins/withReleaseSigning",
   ],

@@ -7,6 +7,7 @@ import { PriceWindow } from "../logic/priceWindow";
 import { scoreRound } from "../logic/scoring";
 import { RoundRecord, WINDOW } from "../logic/types";
 import { feed } from "../services/priceFeed";
+import { cancelBatchDone, scheduleBatchDone } from "../services/notify";
 import { jobStatus } from "../services/settler";
 import { useStore } from "../state/store";
 import { fmtAmount, money } from "../ui/hooks";
@@ -31,6 +32,7 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
   const [msgI, setMsgI] = useState(0);
 
   useEffect(() => {
+    void scheduleBatchDone(plan.startedAt, plan.count);
     const tickAll = (p: number, at: number) => wins.current.forEach((w) => w.tick(p, at));
     if (feed.last) tickAll(feed.last, Date.now());
     const off = feed.onPrice(tickAll);
@@ -56,6 +58,7 @@ export function RoundScreen({ plan, onDone, onAbort }: { plan: RoundPlan; onDone
 
   const finishOne = () => {
     done.current += 1;
+    if (done.current === plan.count) void cancelBatchDone(plan.startedAt);
     if (done.current === plan.count) setTimeout(() => (scored.current.length ? onDone(scored.current) : onAbort()), 400);
   };
 

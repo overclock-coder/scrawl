@@ -13,8 +13,11 @@ export const BAND_PCT = 0.0015;
 export const START_BALANCE = 1000;
 export const DAILY_BONUS = 100;
 
-// uri must serve `icon` (relative) and, for silent re-authorise in Phantom, be a verified identity domain.
-export const APP_IDENTITY = { name: "Scrawl", uri: "https://scrawl.app", icon: "favicon.png" } as const;
+// Phantom shows this name and icon on the connect and sign prompts. `icon` is resolved against `uri`, so the
+// site at `uri` must serve /icon.png (deploy deck/site), and for silent re-authorise it must also serve
+// /.well-known/assetlinks.json. Set EXPO_PUBLIC_APP_URI to the deployed https URL before building.
+const APP_URI = process.env.EXPO_PUBLIC_APP_URI ?? "https://scrawl.app";
+export const APP_IDENTITY = { name: "Scrawl", uri: APP_URI, icon: "icon.png" } as const;
 
 // Settler: scores on-chain positions and closes them. Debug builds reach the Mac via `adb reverse tcp:3000 tcp:3000`;
 // a release build needs an https URL (set EXPO_PUBLIC_SETTLER_URL).

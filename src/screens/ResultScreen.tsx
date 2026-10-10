@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { EXPLORER } from "../config";
 import { hashPrices, settleMemo } from "../logic/commit";
 import { classifyWalletError } from "../logic/walletErrors";
+import { enableDailyReminder } from "../services/notify";
 import { sendMemo } from "../solana/wallet";
 import { useStore } from "../state/store";
 import { fmtAmount, money } from "../ui/hooks";
@@ -17,6 +18,9 @@ export function ResultScreen({ ids, onAgain }: { ids: string[]; onAgain: () => v
   const [width, setWidth] = useState(300);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => {
+    void enableDailyReminder();
+  }, []);
   if (!rounds.length) return null;
 
   const r = rounds[Math.min(sel, rounds.length - 1)];

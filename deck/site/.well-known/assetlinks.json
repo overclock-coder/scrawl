@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.scrawl.mobile",
+      "sha256_cert_fingerprints": [
+        "17:6B:C6:06:3A:BD:DB:42:0B:93:A9:CF:D4:6B:35:38:63:F3:25:A2:88:5C:60:0A:BC:53:6C:2B:02:43:51:95"
+      ]
+    }
+  }
+]
