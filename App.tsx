@@ -8,6 +8,7 @@ import { PressStart2P_400Regular } from "@expo-google-fonts/press-start-2p";
 import { feed } from "./src/services/priceFeed";
 import { StoreProvider } from "./src/state/store";
 import { HistoryScreen } from "./src/screens/HistoryScreen";
+import { AboutScreen } from "./src/screens/AboutScreen";
 import { Landing } from "./src/screens/Landing";
 import { Leaderboard } from "./src/screens/Leaderboard";
 import { PlayScreen, RoundPlan } from "./src/screens/PlayScreen";
@@ -26,6 +27,7 @@ function Shell() {
   const [tab, setTab] = useState<Tab>("play");
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [wallet, setWallet] = useState(false);
+  const [about, setAbout] = useState(false);
 
   useEffect(() => {
     feed.start();
@@ -35,6 +37,7 @@ function Shell() {
   // Back: ignored mid-round (the stake is live), closes a result, then Play, then the landing page.
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (about) return setAbout(false), true;
       if (landing) return false;
       if (overlay?.kind === "round") return true;
       if (overlay) return setOverlay(null), true;
@@ -42,13 +45,21 @@ function Shell() {
       return setLanding(true), true;
     });
     return () => sub.remove();
-  }, [landing, overlay, tab]);
+  }, [landing, overlay, tab, about]);
+
+  if (about) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["bottom"]}>
+        <AboutScreen onClose={() => setAbout(false)} />
+      </SafeAreaView>
+    );
+  }
 
   if (landing) {
     return (
       <Backdrop>
         <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
-          <Landing onPlay={() => { setTab("play"); setLanding(false); }} onBoard={() => { setTab("leaderboard"); setLanding(false); }} />
+          <Landing onPlay={() => { setTab("play"); setLanding(false); }} onBoard={() => { setTab("leaderboard"); setLanding(false); }} onAbout={() => setAbout(true)} />
         </SafeAreaView>
       </Backdrop>
     );
@@ -60,7 +71,7 @@ function Shell() {
   return (
     <Backdrop>
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
-        <Header onWallet={() => setWallet(true)} />
+        <Header onWallet={() => setWallet(true)} onAbout={() => setAbout(true)} />
         <View style={{ flex: 1 }}>
           {overlay?.kind === "round" ? (
             <RoundScreen plan={overlay.plan} onDone={(ids) => setOverlay({ kind: "result", ids })} onAbort={() => setOverlay(null)} />

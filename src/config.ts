@@ -1,6 +1,7 @@
 export const CLUSTER = "devnet" as const;
 export const RPC_URL = "https://api.devnet.solana.com";
 export const EXPLORER = (sig: string) => `https://explorer.solana.com/tx/${sig}?cluster=${CLUSTER}`;
+export const EXPLORER_ADDRESS = (addr: string) => `https://explorer.solana.com/address/${addr}?cluster=${CLUSTER}`;
 
 export const ASSET = "SOL";
 export const FEED_URL = "wss://stream.bybit.com/v5/public/spot";

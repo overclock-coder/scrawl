@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Image, ScrollView, Text, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Image, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 import { ASSET, CLUSTER } from "../config";
 import { money, useFeed } from "../ui/hooks";
 import { NeoBox, NeoButton, Venite } from "../ui/neo";
@@ -12,7 +12,7 @@ const STEPS = [
   { n: "3", emoji: "💰", title: "Score", desc: "Every second's move is compared with your line. Call the direction right more often than not and you profit." },
 ];
 
-export function Landing({ onPlay, onBoard }: { onPlay: () => void; onBoard: () => void }) {
+export function Landing({ onPlay, onBoard, onAbout }: { onPlay: () => void; onBoard: () => void; onAbout: () => void }) {
   const { width } = useWindowDimensions();
   const { price, status } = useFeed();
   const scroll = useRef<ScrollView>(null);
@@ -42,9 +42,16 @@ export function Landing({ onPlay, onBoard }: { onPlay: () => void; onBoard: () =
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Venite size={26} off={3} style={{ letterSpacing: 5 }}>SCRAWL</Venite>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderColor: C.lime, borderWidth: 2, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.lime }} />
-            <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 10, letterSpacing: 1 }}>{CLUSTER.toUpperCase()}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Pressable onPress={onAbout} hitSlop={8} accessibilityRole="button" accessibilityLabel="About Scrawl">
+              <View style={{ backgroundColor: C.lime, borderColor: C.bg, borderWidth: 2, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+                <Text style={{ color: C.purple, fontFamily: F.black, fontSize: 10, letterSpacing: 1 }}>ABOUT</Text>
+              </View>
+            </Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderColor: C.lime, borderWidth: 2, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.lime }} />
+              <Text style={{ color: C.lime, fontFamily: F.black, fontSize: 10, letterSpacing: 1 }}>{CLUSTER.toUpperCase()}</Text>
+            </View>
           </View>
         </View>
 

@@ -5,11 +5,11 @@ import { NeoBox, Chipbadge, Venite } from "./neo";
 import { short } from "./hooks";
 import { C, F, fade } from "./theme";
 
-export function Header({ onWallet, status }: { onWallet: () => void; status?: string }) {
+export function Header({ onWallet, onAbout, status }: { onWallet: () => void; onAbout?: () => void; status?: string }) {
   const { session } = useStore();
   return (
     <View style={{ backgroundColor: fade(C.purple, 0.92), borderBottomWidth: 4, borderBottomColor: C.lime, paddingHorizontal: 12, paddingVertical: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+      <Pressable onPress={onAbout} disabled={!onAbout} accessibilityRole="button" accessibilityLabel="About Scrawl" style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <View style={{ shadowColor: C.lime, elevation: 10, borderRadius: 8 }}>
           <Image source={require("../../assets/ui/logo.png")} style={{ width: 42, height: 42, borderRadius: 8, borderWidth: 2, borderColor: "#C1FF72" }} />
         </View>
@@ -17,7 +17,7 @@ export function Header({ onWallet, status }: { onWallet: () => void; status?: st
           <Venite size={21} color={C.lime} shadow={C.bg} off={2} style={{ letterSpacing: 3 }}>SCRAWL</Venite>
           <Text style={{ fontFamily: F.bold, color: fade(C.lime, 0.7), fontSize: 9, letterSpacing: 1.2 }}>DRAW YOUR FUTURES</Text>
         </View>
-      </View>
+      </Pressable>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         {status ? <Chipbadge text={`● ${status}`} bg={fade(C.lime, 0.2)} fg={C.lime} border={C.lime} /> : null}
         <Pressable onPress={onWallet}>
