@@ -53,3 +53,6 @@ google-services.json
 /anchor/target
 /anchor/.anchor
 /settler/node_modules
+
+# built APKs
+exports/*.apk
