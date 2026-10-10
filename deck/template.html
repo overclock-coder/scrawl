@@ -1,0 +1,421 @@
+<title>Scrawl Pitch Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: "Venite"; src: url("{{VENITE}}") format("truetype"); font-display: swap; }
+
+/* Layout concept: one slide per screen, scrolled sideways like a cartridge shelf; hard-shadow cards, lime on deep indigo. */
+:root {
+  --night: #0a0014;
+  --indigo: #1800ad;
+  --lime: #c1ff72;
+  --pink: #ff9bf5;
+  --gold: #fbbf24;
+  --paper: #f4f0ff;
+  --mute: #b9b0e6;
+  --display: "Venite", "Orbitron", system-ui, sans-serif;
+  --body: "Orbitron", system-ui, sans-serif;
+  --pixel: "Press Start 2P", ui-monospace, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; }
+body { background: var(--night); color: var(--paper); font-family: var(--body); font-size: 16px; line-height: 1.55; overflow: hidden; }
+* { box-sizing: border-box; }
+img { max-width: 100%; display: block; }
+
+.deck { display: flex; height: 100%; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; }
+.deck::-webkit-scrollbar { display: none; }
+.slide {
+  flex: 0 0 100%; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto;
+  padding-block: clamp(20px, 4vw, 48px) 96px; padding-inline: clamp(16px, 5vw, 72px);
+  background: linear-gradient(135deg, var(--night) 0%, var(--indigo) 55%, var(--night) 100%);
+  display: flex; flex-direction: column; gap: clamp(14px, 2vw, 26px); position: relative;
+}
+.slide > * { flex-shrink: 0; }
+.slide > :first-child { margin-top: auto; }
+.slide > :last-child { margin-bottom: auto; }
+.tag { font-family: var(--pixel); font-size: 10px; letter-spacing: .08em; color: var(--lime); opacity: .85; text-transform: uppercase; }
+h1, h2 { font-family: var(--display); color: var(--lime); text-shadow: 3px 3px 0 var(--indigo); margin: 0; font-weight: 400; text-wrap: balance; line-height: 1.12; }
+h1 { font-size: clamp(34px, 7vw, 84px); letter-spacing: .04em; }
+h2 { font-size: clamp(26px, 4.4vw, 52px); }
+h3 { font-family: var(--body); font-weight: 800; color: var(--lime); margin: 0 0 6px; font-size: clamp(14px, 1.5vw, 18px); letter-spacing: .02em; }
+p { margin: 0; max-width: 62ch; color: var(--paper); font-size: clamp(14px, 1.45vw, 19px); }
+.lead { font-size: clamp(16px, 1.8vw, 24px); }
+.mute { color: var(--mute); }
+em { font-style: normal; color: var(--lime); font-weight: 600; }
+
+.card {
+  background: #0a0014; border: 4px solid var(--lime); border-radius: 18px; padding: clamp(14px, 1.8vw, 24px);
+  box-shadow: 7px 7px 0 var(--indigo);
+}
+.card.fill { background: rgba(24, 0, 173, .55); box-shadow: 7px 7px 0 var(--lime); }
+.grid { display: grid; gap: clamp(14px, 2vw, 24px); }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.split { display: grid; gap: clamp(18px, 3vw, 44px); grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; }
+@media (max-width: 760px) {
+  .g2, .g3, .split { grid-template-columns: minmax(0, 1fr); }
+}
+.num { font-family: var(--pixel); font-size: clamp(14px, 2vw, 24px); color: var(--lime); line-height: 1.4; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.list li { position: relative; padding-left: 26px; font-size: clamp(14px, 1.4vw, 18px); }
+.list li::before { content: ""; position: absolute; left: 0; top: .55em; width: 12px; height: 12px; background: var(--lime); box-shadow: 3px 3px 0 var(--indigo); }
+
+/* title + closing */
+.hero-logo { width: clamp(120px, 18vw, 220px); border: 4px solid var(--lime); border-radius: 24px; box-shadow: 8px 8px 0 var(--indigo); }
+.run { position: absolute; left: 0; right: 0; bottom: 70px; height: clamp(60px, 9vw, 120px); overflow: hidden; pointer-events: none; }
+.run img { height: 100%; width: auto; max-width: none; image-rendering: pixelated; animation: dash 12s linear infinite; position: absolute; top: 0; left: 0; }
+@keyframes dash { from { transform: translateX(-100%); } to { transform: translateX(100vw); } }
+@media (prefers-reduced-motion: reduce) { .run img { animation: none; transform: translateX(8vw); } }
+.slide > .title-wrap { position: relative; margin-block: auto; }
+.slide.hero { padding-bottom: calc(96px + clamp(70px, 11vw, 150px)); }
+
+/* phone frames */
+.phones { --ph: min(56vh, 540px); display: grid; grid-template-columns: repeat(3, minmax(0, calc(var(--ph) * .56))); justify-content: center; gap: clamp(10px, 2.4vw, 32px); align-items: start; }
+@media (max-width: 760px) { .phones { gap: 8px; } .phone figcaption { font-size: 8px; } }
+.phone { margin: 0; }
+.phone .frame { border: 4px solid var(--lime); border-radius: 22px; overflow: hidden; box-shadow: 6px 6px 0 var(--indigo); background: #0a0014; }
+.phone img { width: 100%; height: auto; }
+.phone figcaption { font-family: var(--pixel); font-size: 10px; margin-top: 14px; color: var(--lime); text-align: center; line-height: 1.6; }
+
+/* formula */
+.formula { font-family: var(--pixel); font-size: clamp(11px, 1.5vw, 18px); line-height: 2; color: var(--paper); }
+.formula b { color: var(--lime); font-weight: 400; }
+.meter { position: relative; height: 22px; border: 3px solid var(--lime); border-radius: 12px; background: #0a0014; overflow: hidden; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: repeating-linear-gradient(90deg, var(--lime) 0 14px, #9be84f 14px 28px); }
+.meter span { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; margin-left: -2px; background: var(--pink); z-index: 1; }
+
+/* diagram */
+.diagram { width: 100%; overflow-x: auto; }
+.diagram svg { width: 100%; min-width: 640px; height: auto; max-height: 44vh; display: block; margin-inline: auto; }
+.d-box { fill: #0a0014; stroke: var(--lime); stroke-width: 3; }
+.d-box.hot { fill: var(--indigo); }
+.d-t { fill: var(--paper); font-family: var(--body); font-size: 15px; font-weight: 600; }
+.d-h { fill: var(--lime); font-family: var(--body); font-size: 16px; font-weight: 800; }
+.d-s { fill: var(--mute); font-family: var(--body); font-size: 12px; }
+.d-l { stroke: var(--lime); stroke-width: 3; fill: none; }
+.d-a { fill: var(--lime); }
+.d-n { fill: var(--pink); font-family: var(--pixel); font-size: 10px; }
+
+/* status table */
+.rows { display: grid; gap: 10px; }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; }
+.pill { font-family: var(--pixel); font-size: 9px; padding: 7px 9px; border: 3px solid var(--lime); border-radius: 999px; color: var(--night); background: var(--lime); white-space: nowrap; }
+.pill.next { background: transparent; color: var(--pink); border-color: var(--pink); }
+
+.chips { display: flex; gap: clamp(6px, 1.4vw, 16px); flex-wrap: wrap; }
+.chips img { width: clamp(46px, 7vw, 86px); height: auto; image-rendering: pixelated; }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 14px; font-size: clamp(13px, 1.3vw, 17px); }
+.kv dt { color: var(--lime); font-weight: 800; }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+code { font-family: var(--pixel); font-size: .6em; color: var(--lime); overflow-wrap: anywhere; line-height: 1.8; }
+
+/* controls */
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px clamp(16px, 5vw, 72px) calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 0, 20, .92); border-top: 4px solid var(--lime);
+}
+.count { font-family: var(--pixel); font-size: 11px; color: var(--lime); white-space: nowrap; }
+.dots { display: flex; gap: 6px; flex: 1; justify-content: center; flex-wrap: wrap; }
+.dots button { width: 10px; height: 10px; padding: 0; border: 2px solid var(--lime); background: transparent; cursor: pointer; border-radius: 0; }
+.dots button[aria-current="true"] { background: var(--lime); }
+.nav { display: flex; gap: 8px; }
+.nav button {
+  font-family: var(--pixel); font-size: 12px; width: 44px; height: 40px; background: var(--lime); color: var(--indigo);
+  border: 3px solid var(--night); border-radius: 10px; box-shadow: 3px 3px 0 var(--indigo); cursor: pointer;
+}
+.nav button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--indigo); }
+.nav button:disabled { opacity: .35; cursor: default; }
+button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+@media (max-width: 560px) { .dots { display: none; } .count { flex: 1; } }
+</style>
+
+<main class="deck" id="deck" aria-label="Scrawl pitch deck">
+
+  <!-- 1 title -->
+  <section class="slide hero" id="s1" aria-label="Title">
+    <div class="title-wrap">
+      <img class="hero-logo" src="{{LOGO}}" alt="Scrawl logo: a lime scribbled S with the Nyan Cat running through it">
+      <h1 style="margin-top:22px">SCRAWL</h1>
+      <p class="lead" style="margin-top:10px"><em>Draw your futures.</em> Sketch the next 60 seconds of SOL, stake it on Solana, get scored on every move.</p>
+      <p class="tag" style="margin-top:18px">Solana Mobile hackathon / Mobile track / Android / devnet</p>
+    </div>
+    <div class="run"><img src="{{TRAIL}}" alt=""></div>
+  </section>
+
+  <!-- 2 problem -->
+  <section class="slide" id="s2" aria-label="Problem">
+    <span class="tag">The problem</span>
+    <h2>Perps look like a cockpit. Most people never try one.</h2>
+    <div class="grid g3">
+      <div class="card"><h3>Order books</h3><p class="mute">Limit, stop, reduce-only. Three tabs before you place a bet on a price.</p></div>
+      <div class="card"><h3>Liquidation maths</h3><p class="mute">Margin, funding, maintenance. A wrong number and the position is gone.</p></div>
+      <div class="card"><h3>Built for a desk</h3><p class="mute">Tiny charts and dense tables, on a screen you hold in one hand.</p></div>
+    </div>
+    <p class="lead">Phones are where people already have a wallet and a minute to spare. Nobody has made a market view that is native to that.</p>
+  </section>
+
+  <!-- 3 idea -->
+  <section class="slide" id="s3" aria-label="The idea">
+    <span class="tag">The idea</span>
+    <h2>A futures trade, expressed as a drawing.</h2>
+    <div class="grid g3">
+      <div class="card fill"><div class="num">1</div><h3>Draw</h3><p>Trace where you think SOL goes over the next minute, with your finger.</p></div>
+      <div class="card fill"><div class="num">2</div><h3>Stake</h3><p>Pick 0.01 SOL or more and leverage up to 100x. Approve once in your wallet.</p></div>
+      <div class="card fill"><div class="num">3</div><h3>Score</h3><p>Every second's move is checked against your line. Call the direction right more than half the time and you profit.</p></div>
+    </div>
+    <p class="mute">No order types, no liquidation price, no guessing where to click. One gesture, one minute, one number.</p>
+  </section>
+
+  <!-- 4 product -->
+  <section class="slide" id="s4" aria-label="The product">
+    <span class="tag">The app / captured on a phone, devnet</span>
+    <h2>Draw. Watch. Settle.</h2>
+    <div class="phones">
+      <figure class="phone"><div class="frame"><img src="{{DRAW}}" alt="Drawing pad with a rising lime stroke, time chips, stake field and the SCRAWL lever"></div><figcaption>DRAW &amp; PULL</figcaption></figure>
+      <figure class="phone"><div class="frame"><img src="{{ROUND}}" alt="Live round: your dotted line against the real SOL price with a Nyan Cat rainbow and a countdown"></div><figcaption>WATCH THE CLOCK</figcaption></figure>
+      <figure class="phone"><div class="frame"><img src="{{RESULT}}" alt="Result: accuracy, stake, leverage, payout and links to the transactions"></div><figcaption>SETTLED ON-CHAIN</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 5 scoring -->
+  <section class="slide" id="s5" aria-label="Scoring">
+    <span class="tag">How a round is scored</span>
+    <h2>Direction, second by second.</h2>
+    <div class="split">
+      <div style="display:grid;gap:16px">
+        <p>The round has 60 samples, one per second. At each step we compare which way <em>your line</em> moved with which way the <em>real price</em> moved. Steps where the price did not tick are skipped.</p>
+        <div class="card"><div class="formula">accuracy = right calls ÷ compared steps<br><b>PnL</b> = (2 × accuracy − 1) × max profit<br>max profit = |price move| × stake ÷ start price × leverage</div></div>
+        <p class="mute">Loss is floored at your stake. Fee is 2% of profit only.</p>
+      </div>
+      <div class="card fill" style="display:grid;gap:14px">
+        <span class="tag">Example / illustrative</span>
+        <div class="kv">
+          <dt>Stake</dt><dd>0.50 SOL at 10x</dd>
+          <dt>SOL move</dt><dd>$109.00 → $109.05</dd>
+          <dt>Max profit</dt><dd>0.0025 SOL</dd>
+          <dt>Accuracy</dt><dd>70%</dd>
+          <dt>PnL</dt><dd>+0.0010 SOL</dd>
+        </div>
+        <div>
+          <div class="meter" role="img" aria-label="Break-even at 50 percent accuracy"><i style="width:70%"></i><span></span></div>
+          <p class="mute" style="font-size:12px;margin-top:8px">The pink mark is 50%: break-even. Right of it you win, left of it you lose.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 mobile -->
+  <section class="slide" id="s6" aria-label="Why mobile">
+    <span class="tag">Built for Solana Mobile</span>
+    <h2>The whole loop fits in a thumb and a minute.</h2>
+    <div class="grid g2">
+      <div class="card"><h3>Mobile Wallet Adapter 2.0</h3><p class="mute">Connect, authorize and sign through the wallet already on the phone. The auth token is cached in secure storage and refreshed silently.</p></div>
+      <div class="card"><h3>Sign here, submit from the app</h3><p class="mute">The wallet only signs. The app checks what came back (only fee instructions may be added), then sends it through its own RPC.</p></div>
+      <div class="card"><h3>Made for a small screen</h3><p class="mute">A finger-drawn canvas, a slot-machine lever, haptics on every pull and result, and the screen stays awake during a round.</p></div>
+      <div class="card"><h3>Wallet errors that make sense</h3><p class="mute">Backing out of the wallet is a retry, not a failure. A fresh blockhash is fetched after approval so devnet's short expiry does not bite.</p></div>
+    </div>
+  </section>
+
+  <!-- 7 architecture -->
+  <section class="slide" id="s7" aria-label="On-chain design">
+    <span class="tag">On-chain design</span>
+    <h2>Stakes in a vault. Results written by a settler.</h2>
+    <div class="diagram card">
+      <svg viewBox="0 0 980 400" role="img" aria-label="Diagram: the phone signs with the wallet, the program holds stakes in a vault, the settler reads prices and closes positions">
+        <rect class="d-box" x="20" y="30" width="200" height="90" rx="14"/>
+        <text class="d-h" x="40" y="62">Scrawl app</text>
+        <text class="d-s" x="40" y="86">draw · hash · stake</text>
+
+        <rect class="d-box" x="20" y="260" width="200" height="90" rx="14"/>
+        <text class="d-h" x="40" y="292">Wallet</text>
+        <text class="d-s" x="40" y="316">Mobile Wallet Adapter</text>
+
+        <rect class="d-box hot" x="370" y="110" width="270" height="180" rx="14"/>
+        <text class="d-h" x="392" y="142">Futures program</text>
+        <text class="d-t" x="392" y="176">Vault PDA holds SOL</text>
+        <text class="d-t" x="392" y="204">Position PDA per bet</text>
+        <text class="d-s" x="392" y="236">open_position · close_position</text>
+        <text class="d-s" x="392" y="260">pause · fee · pnl bounds</text>
+
+        <rect class="d-box" x="760" y="30" width="200" height="90" rx="14"/>
+        <text class="d-h" x="780" y="62">Settler</text>
+        <text class="d-s" x="780" y="86">scores &amp; closes</text>
+
+        <rect class="d-box" x="760" y="260" width="200" height="90" rx="14"/>
+        <text class="d-h" x="780" y="292">Price feed</text>
+        <text class="d-s" x="780" y="316">SOL/USDT, per second</text>
+
+        <path class="d-l" d="M120 120 V260"/><polygon class="d-a" points="112,250 128,250 120,262"/>
+        <text class="d-n" x="130" y="196">sign</text>
+        <path class="d-l" d="M220 300 H300 V230 H370"/><polygon class="d-a" points="360,222 360,238 372,230"/>
+        <text class="d-n" x="236" y="290">stake</text>
+        <path class="d-l" d="M760 75 H700 V150 H642"/><polygon class="d-a" points="650,142 650,158 638,150"/>
+        <text class="d-n" x="706" y="66">close</text>
+        <path class="d-l" d="M860 260 V120"/><polygon class="d-a" points="852,130 868,130 860,118"/>
+        <text class="d-n" x="872" y="196">prices</text>
+        <path class="d-l" d="M220 75 H300 V150 H370" stroke-dasharray="7 6"/><polygon class="d-a" points="360,142 360,158 372,150"/>
+        <text class="d-n" x="236" y="66">hash</text>
+      </svg>
+    </div>
+    <dl class="kv card fill">
+      <dt>Program</dt><dd><code>FYHebuyTZwg2JWaHTHtRY7xCYgEHpiX1Frq98Awzkhtu</code></dd>
+      <dt>Cluster</dt><dd>Solana devnet</dd>
+      <dt>Stack</dt><dd>Anchor program · Node settler · Expo / React Native app</dd>
+    </dl>
+  </section>
+
+  <!-- 8 trust -->
+  <section class="slide" id="s8" aria-label="Trust model">
+    <span class="tag">Trust model</span>
+    <h2>What is checked, and what is still trusted.</h2>
+    <div class="grid g2">
+      <div class="card fill">
+        <h3>Enforced on-chain</h3>
+        <ul class="list">
+          <li>Only the settler key can close a position, and only after 60 seconds</li>
+          <li>PnL is bounded to between your stake lost and stake × leverage</li>
+          <li>The drawing's hash is stored before the round starts; a different drawing is rejected</li>
+          <li>Fee on profit only, pause switch, a vault that cannot go below rent</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Trusted today</h3>
+        <ul class="list">
+          <li>The settler records prices from a public exchange feed and scores the round</li>
+          <li>One settler key, held off-device</li>
+          <li>Emergency withdraw exists, as a demo-stage switch</li>
+        </ul>
+        <p class="mute" style="margin-top:14px">Next: read prices from an on-chain oracle so the score can be checked by anyone.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 stickiness -->
+  <section class="slide" id="s9" aria-label="Engagement">
+    <span class="tag">Why people come back</span>
+    <h2>One minute at a time. Easy to do twice.</h2>
+    <div class="split">
+      <div class="grid" style="gap:14px">
+        <div class="card"><h3>A loop you can finish on a bus</h3><p class="mute">Every position is 60 seconds. Stack up to five back to back with one approval.</p></div>
+        <div class="card"><h3>Streaks and a daily bonus</h3><p class="mute">Play on consecutive days to build a streak and claim play currency.</p></div>
+        <div class="card"><h3>Practice with NYAN</h3><p class="mute">No wallet or funds needed to learn the feel. Switch to devnet SOL when ready.</p></div>
+      </div>
+      <div class="card fill" style="display:grid;gap:16px">
+        <span class="tag">Pick your horizon</span>
+        <div class="chips">
+          <img src="{{CHIP1}}" alt="1 minute chip"><img src="{{CHIP2}}" alt="2 minute chip"><img src="{{CHIP3}}" alt="3 minute chip"><img src="{{CHIP4}}" alt="4 minute chip"><img src="{{CHIP5}}" alt="5 minute chip">
+        </div>
+        <p class="mute">A 3-minute pick is three 60-second positions, staked in one transaction and settled one by one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 status -->
+  <section class="slide" id="s10" aria-label="Status">
+    <span class="tag">Where it stands</span>
+    <h2>What has been run, and what has not.</h2>
+    <div class="card rows">
+      <div class="row"><span class="pill">DONE</span><p>Anchor program deployed to devnet, with 19 passing tests covering every instruction and failure path</p></div>
+      <div class="row"><span class="pill">DONE</span><p>Settler verified end to end on devnet: stake, drawing registered, scored, position closed, tampered drawing rejected</p></div>
+      <div class="row"><span class="pill">DONE</span><p>Full rounds played on a physical Android phone with a real wallet, stake and payout visible on the explorer</p></div>
+      <div class="row"><span class="pill next">NEXT</span><p>Multi-minute batches and a winning-payout round on device</p></div>
+      <div class="row"><span class="pill next">NEXT</span><p>Release APK with an https settler so anyone can install and play</p></div>
+      <div class="row"><span class="pill next">NEXT</span><p>A shared leaderboard read from program events (today it is on the device)</p></div>
+    </div>
+  </section>
+
+  <!-- 11 roadmap -->
+  <section class="slide" id="s11" aria-label="Roadmap">
+    <span class="tag">Roadmap</span>
+    <h2>From a one-phone demo to a game people share.</h2>
+    <div class="grid g3">
+      <div class="card"><span class="tag">Now</span><h3 style="margin-top:8px">Hackathon build</h3><ul class="list" style="margin-top:10px"><li>Release APK</li><li>Demo video</li><li>Hosted settler</li></ul></div>
+      <div class="card"><span class="tag">Next</span><h3 style="margin-top:8px">Fair and social</h3><ul class="list" style="margin-top:10px"><li>On-chain price oracle</li><li>Global leaderboard</li><li>Push for settled rounds</li></ul></div>
+      <div class="card"><span class="tag">Later</span><h3 style="margin-top:8px">Open game</h3><ul class="list" style="margin-top:10px"><li>More assets and timeframes</li><li>Seasons and rewards</li><li>Verified app identity in wallets</li></ul></div>
+    </div>
+  </section>
+
+  <!-- 12 close -->
+  <section class="slide hero" id="s12" aria-label="Close">
+    <div class="title-wrap">
+      <span class="tag">Scrawl</span>
+      <h1 style="margin-top:14px">Draw. Stake.<br>Get scored.</h1>
+      <p class="lead" style="margin-top:14px">A futures game that fits in one thumb, on Solana Mobile.</p>
+    </div>
+    <div class="run"><img src="{{TRAIL}}" alt=""></div>
+  </section>
+</main>
+
+<nav class="bar" aria-label="Slides">
+  <span class="count" id="count">01 / 12</span>
+  <div class="dots" id="dots"></div>
+  <div class="nav">
+    <button id="prev" aria-label="Previous slide">&lt;</button>
+    <button id="next" aria-label="Next slide">&gt;</button>
+  </div>
+</nav>
+
+<script>
+(function () {
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var dots = document.getElementById('dots');
+  var count = document.getElementById('count');
+  var prev = document.getElementById('prev');
+  var next = document.getElementById('next');
+  var cur = 0;
+
+  slides.forEach(function (s, i) {
+    var b = document.createElement('button');
+    b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    b.addEventListener('click', function () { go(i); });
+    dots.appendChild(b);
+  });
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function paint() {
+    count.textContent = pad(cur + 1) + ' / ' + pad(slides.length);
+    Array.prototype.forEach.call(dots.children, function (d, i) { d.setAttribute('aria-current', i === cur ? 'true' : 'false'); });
+    prev.disabled = cur === 0;
+    next.disabled = cur === slides.length - 1;
+  }
+  function go(i, instant) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    if (instant) deck.style.scrollBehavior = 'auto';
+    deck.scrollTo({ left: cur * deck.clientWidth, behavior: instant ? 'auto' : 'smooth' });
+    if (instant) requestAnimationFrame(function () { deck.style.scrollBehavior = ''; });
+    paint();
+  }
+  deck.addEventListener('scroll', function () {
+    var i = Math.round(deck.scrollLeft / Math.max(1, deck.clientWidth));
+    if (i !== cur) { cur = i; paint(); }
+  }, { passive: true });
+  prev.addEventListener('click', function () { go(cur - 1); });
+  next.addEventListener('click', function () { go(cur + 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+  });
+  // A vertical wheel or trackpad swipe moves between slides unless the slide itself can scroll.
+  var wheelLock = false;
+  deck.addEventListener('wheel', function (e) {
+    var s = slides[cur];
+    var canScrollY = s.scrollHeight > s.clientHeight + 4;
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || canScrollY) return;
+    e.preventDefault();
+    if (wheelLock) return;
+    wheelLock = true;
+    go(cur + (e.deltaY > 0 ? 1 : -1));
+    setTimeout(function () { wheelLock = false; }, 450);
+  }, { passive: false });
+  window.addEventListener('resize', function () { go(cur, true); });
+
+  var m = /^#s(\d+)$/.exec(location.hash);
+  go(m ? parseInt(m[1], 10) - 1 : 0, true);
+  paint();
+})();
+</script>
