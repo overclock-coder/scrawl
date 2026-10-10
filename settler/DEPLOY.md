@@ -25,12 +25,24 @@ The settler wallet pays transaction fees, so keep a little devnet SOL in it (`so
 
 ## Lightsail container service, step by step
 
-1. **Build and publish the image** (the image holds no secrets; the key is an environment variable):
+1. **Build and publish an x86-64 image.** Lightsail runs x86-64, and an Apple Silicon Mac builds arm64 by default,
+   so pick one of these (the image holds no secrets; the key is an environment variable):
 
-   ```
-   docker build --platform linux/amd64 -f settler/Dockerfile -t <dockerhub-user>/scrawl-settler:latest .
-   docker push <dockerhub-user>/scrawl-settler:latest
-   ```
+   - **Easiest, no local tooling: AWS CloudShell** (the terminal icon in the AWS console, x86-64, has Docker).
+     Clone the repo and build there:
+
+     ```
+     git clone https://github.com/overclock-coder/scrawl.git && cd scrawl
+     docker build -f settler/Dockerfile -t <dockerhub-user>/scrawl-settler:latest .
+     docker login && docker push <dockerhub-user>/scrawl-settler:latest
+     ```
+
+   - **From your Mac** (Colima or Docker Desktop plus the buildx plugin, `brew install docker-buildx`):
+
+     ```
+     docker buildx build --platform linux/amd64 -f settler/Dockerfile \
+       -t <dockerhub-user>/scrawl-settler:latest --push .
+     ```
 
 2. In the AWS console open **Lightsail → Containers → Create container service**. Choose **Nano**, scale **1**.
 3. Under **Set up deployment**, add a container: image `<dockerhub-user>/scrawl-settler:latest`, open port `3000` (HTTP),
