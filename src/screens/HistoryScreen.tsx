@@ -29,7 +29,7 @@ export function HistoryScreen({ onOpen, onWallet }: { onOpen: (id: string) => vo
   const cards: [string, string, string, string?][] = [
     ["📊", "Total trades", String(stats.n)],
     ["🎯", "Win rate", `${stats.winRate.toFixed(1)}%`],
-    ["💰", "PnL (SCP)", money(stats.pnl), stats.pnl < 0 ? C.red : undefined],
+    ["💰", "PnL (NYAN)", money(stats.pnl), stats.pnl < 0 ? C.red : undefined],
     ...(stats.hasLive ? ([["◎", "PnL (devnet SOL)", `${stats.liveSol >= 0 ? "+" : ""}${stats.liveSol.toFixed(4)}`, stats.liveSol < 0 ? C.red : undefined]] as [string, string, string, string?][]) : []),
     ["🔥", "Day streak", String(streak.count)],
   ];

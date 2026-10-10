@@ -57,5 +57,5 @@ export function useSol(address?: string) {
   return { sol, refresh };
 }
 
-/** Amounts: devnet SOL needs more decimals than practice SCP. */
+/** Amounts: devnet SOL needs more decimals than practice NYAN. */
 export const fmtAmount = (live: boolean, v: number) => (live ? `${v.toFixed(4)} SOL` : money(v));

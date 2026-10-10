@@ -38,7 +38,7 @@ export function Leaderboard() {
           name: "You",
           avatar: "🎨",
           address: session?.address ?? "local-device-player",
-          pnl: history.filter((h) => !h.live).reduce((a, h) => a + h.score.pnl, 0), // SCP only; SOL rounds are tracked separately
+          pnl: history.filter((h) => !h.live).reduce((a, h) => a + h.score.pnl, 0), // NYAN only; SOL rounds are tracked separately
           winRate: (history.filter((h) => h.score.pnl > 0).length / history.length) * 100,
           trades: history.length,
           best: history.filter((h) => !h.live).reduce((m, h) => Math.max(m, h.score.pnl), 0),
