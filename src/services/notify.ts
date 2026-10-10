@@ -1,4 +1,3 @@
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import {
   DAILY_HOUR, DAILY_MINUTE, DAILY_REMINDER_COPY, DAILY_REMINDER_ID,
@@ -10,14 +9,24 @@ import { load, save } from "./kv";
 const CHANNEL = "scrawl";
 const ASKED_KEY = "notify.asked.v1";
 
-// Reminders are for when the app is closed; while it is open the round screen already says what happened.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({ shouldShowBanner: false, shouldShowList: false, shouldPlaySound: false, shouldSetBadge: false }),
-});
+// The module is native. A build made before it was added (an old dev client) does not have it, so load it
+// defensively: reminders become a no-op there instead of a red error screen.
+type Notif = typeof import("expo-notifications");
+let Notifications: Notif | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Notifications = require("expo-notifications") as Notif;
+  // Reminders are for when the app is closed; while it is open the round screen already says what happened.
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({ shouldShowBanner: false, shouldShowList: false, shouldPlaySound: false, shouldSetBadge: false }),
+  });
+} catch {
+  Notifications = null;
+}
 
 let channelReady = false;
 async function ensureChannel() {
-  if (Platform.OS !== "android" || channelReady) return;
+  if (!Notifications || Platform.OS !== "android" || channelReady) return;
   await Notifications.setNotificationChannelAsync(CHANNEL, {
     name: "Rounds and reminders",
     importance: Notifications.AndroidImportance.DEFAULT,
@@ -28,6 +37,7 @@ async function ensureChannel() {
 
 /** True if we may post notifications. Asks once, and only when `ask` is set. */
 async function allowed(ask: boolean): Promise<boolean> {
+  if (!Notifications) return false;
   try {
     const cur = await Notifications.getPermissionsAsync();
     if (cur.granted) return true;
@@ -46,6 +56,7 @@ export async function scheduleBatchDone(startedAt: number, count: number): Promi
     await ensureChannel();
     const when = batchDoneAt(startedAt, count);
     if (when <= Date.now()) return;
+    if (!Notifications) return;
     await Notifications.scheduleNotificationAsync({
       identifier: batchReminderId(startedAt),
       content: { ...batchReminderCopy(count), data: { kind: "batch" } },
@@ -59,7 +70,7 @@ export async function scheduleBatchDone(startedAt: number, count: number): Promi
 /** The app saw the batch finish itself, so drop the pending reminder. */
 export async function cancelBatchDone(startedAt: number): Promise<void> {
   try {
-    await Notifications.cancelScheduledNotificationAsync(batchReminderId(startedAt));
+    await Notifications?.cancelScheduledNotificationAsync(batchReminderId(startedAt));
   } catch {
     /* nothing scheduled */
   }
@@ -72,6 +83,7 @@ export async function enableDailyReminder(): Promise<void> {
     await save(ASKED_KEY, true);
     if (!(await allowed(true))) return;
     await ensureChannel();
+    if (!Notifications) return;
     await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID).catch(() => {});
     await Notifications.scheduleNotificationAsync({
       identifier: DAILY_REMINDER_ID,
