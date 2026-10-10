@@ -63,10 +63,21 @@ em { font-style: normal; color: var(--lime); font-weight: 600; }
 
 /* title + closing */
 .hero-logo { width: clamp(120px, 18vw, 220px); border: 4px solid var(--lime); border-radius: 24px; box-shadow: 8px 8px 0 var(--indigo); }
-.run { position: absolute; left: 0; right: 0; bottom: 70px; height: clamp(60px, 9vw, 120px); overflow: hidden; pointer-events: none; }
-.run img { height: 100%; width: auto; max-width: none; image-rendering: pixelated; animation: dash 12s linear infinite; position: absolute; top: 0; left: 0; }
+.run { position: absolute; left: 0; right: 0; bottom: 88px; height: clamp(70px, 9vw, 110px); overflow: hidden; pointer-events: none; --h: clamp(70px, 9vw, 110px); }
+.runner { position: absolute; left: 0; top: 0; height: 100%; display: flex; align-items: flex-start; animation: dash 12s linear infinite; }
+/* The rainbow is two 48px tiles that swap every 0.4s, so its bands step up and down like the original sprite. */
+.trail {
+  width: min(62vw, 760px); height: calc(var(--h) * .6); margin-top: calc(var(--h) * .27); margin-right: calc(var(--h) * -.12);
+  background-image: url("{{FRAME_A}}"); background-repeat: repeat-x; background-size: auto 100%; image-rendering: pixelated;
+  animation: wave .4s steps(1, end) infinite;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .25) 18%, rgba(0, 0, 0, .7) 52%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0, rgba(0, 0, 0, .25) 18%, rgba(0, 0, 0, .7) 52%, #000 100%);
+}
+.cat { height: 100%; width: auto; max-width: none; image-rendering: pixelated; animation: bob .4s steps(1, end) infinite; }
 @keyframes dash { from { transform: translateX(-100%); } to { transform: translateX(100vw); } }
-@media (prefers-reduced-motion: reduce) { .run img { animation: none; transform: translateX(8vw); } }
+@keyframes wave { 0% { background-image: url("{{FRAME_A}}"); } 50% { background-image: url("{{FRAME_B}}"); } }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .runner { animation: none; transform: translateX(10vw); } .trail, .cat { animation: none; } }
 .slide > .title-wrap { position: relative; margin-block: auto; }
 .slide.hero { padding-bottom: calc(96px + clamp(70px, 11vw, 150px)); }
 
@@ -141,7 +152,7 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
       <p class="lead" style="margin-top:10px"><em>Draw your futures.</em> Sketch the next 60 seconds of SOL, stake it on Solana, get scored on every move.</p>
       <p class="tag" style="margin-top:18px">Solana Mobile hackathon / Mobile track / Android / devnet</p>
     </div>
-    <div class="run"><img src="{{TRAIL}}" alt=""></div>
+    <div class="run" aria-hidden="true"><div class="runner"><div class="trail"></div><img class="cat" src="{{NYAN}}" alt=""></div></div>
   </section>
 
   <!-- 2 problem -->
@@ -344,7 +355,7 @@ button:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
       <h1 style="margin-top:14px">Draw. Stake.<br>Get scored.</h1>
       <p class="lead" style="margin-top:14px">A futures game that fits in one thumb, on Solana Mobile.</p>
     </div>
-    <div class="run"><img src="{{TRAIL}}" alt=""></div>
+    <div class="run" aria-hidden="true"><div class="runner"><div class="trail"></div><img class="cat" src="{{NYAN}}" alt=""></div></div>
   </section>
 </main>
 

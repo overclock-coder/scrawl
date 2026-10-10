@@ -16,10 +16,24 @@ def data(path, mime, width=None):
         raw = p.read_bytes()
     return f"data:{mime};base64," + base64.b64encode(raw).decode()
 
+COLORS = ["#ff0000", "#ff9900", "#ffff00", "#33ff00", "#0099ff", "#6633ff"]
+
+def frame(phase):
+    """One 48x66 tile of the rainbow: 24px segments alternate between two heights, swapped by `phase`."""
+    rects = []
+    for seg in range(2):
+        off = 6 if (seg + phase) % 2 else 0
+        for k, c in enumerate(COLORS):
+            rects.append(f'<rect x="{seg*24}" y="{off + k*10}" width="24" height="10" fill="{c}"/>')
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="66" viewBox="0 0 48 66" shape-rendering="crispEdges">' + "".join(rects) + "</svg>"
+    return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
+
 subs = {
     "VENITE": data(ROOT / "assets/fonts/VeniteAdoremus.ttf", "font/ttf"),
     "LOGO": data(ROOT / "assets/logo.png", "image/png"),
-    "TRAIL": data(ROOT / "exports/nyan-cat-rainbow-4x.png", "image/png"),
+    "NYAN": data(ROOT / "assets/ui/nyan.png", "image/png"),
+    "FRAME_A": frame(0),
+    "FRAME_B": frame(1),
     "DRAW": data(HERE / "img/draw.png", "image/png", 640),
     "ROUND": data(HERE / "img/round.png", "image/png", 640),
     "RESULT": data(HERE / "img/result.png", "image/png", 640),
