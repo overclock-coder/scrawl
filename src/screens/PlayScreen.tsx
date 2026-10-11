@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { ASSET, BAND_PCT, MIN_STAKE_SOL, POSITION_RENT_SOL } from "../config";
-import { commitMemo, hashPrices } from "../logic/commit";
+import { hashPrices } from "../logic/commit";
 import { commitmentBytes } from "../logic/onchain";
 import { MIN_COVERAGE, coverage, strokeToPrices } from "../logic/sampling";
 import { MAX_LEVERAGE } from "../logic/scoring";
@@ -10,7 +10,7 @@ import { Point } from "../logic/types";
 import { classifyWalletError } from "../logic/walletErrors";
 import { feed } from "../services/priceFeed";
 import { registerDrawing, settlerOnline } from "../services/settler";
-import { confirm, openPositions, sendMemo } from "../solana/wallet";
+import { confirm, openPositions } from "../solana/wallet";
 import { useStore } from "../state/store";
 import { BottomControls } from "../ui/Bars";
 import { DrawPad, PAD_HEIGHT } from "../ui/DrawPad";
@@ -105,21 +105,9 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
       }
       return;
     }
-    let commitSig: string | undefined;
-    if (session) {
-      setBusy(true);
-      try {
-        // The drawing is committed on-chain BEFORE the first 60s window begins.
-        commitSig = (await sendMemo(commitMemo(commitHash, ASSET, lev, Date.now()))).signature;
-      } catch (e) {
-        setMsg(classifyWalletError(e).message);
-        setBusy(false);
-        return;
-      }
-      setBusy(false);
-    }
+    // Practice rounds are play money only: nothing is sent to the wallet or the chain.
     stakeOut(total);
-    onStart({ predicted, stake, count: minutes, leverage: lev, startPrice, commitHash, commitSig, startedAt: Date.now() });
+    onStart({ predicted, stake, count: minutes, leverage: lev, startPrice, commitHash, startedAt: Date.now() });
     setStroke([]);
   };
 
@@ -214,7 +202,7 @@ export function PlayScreen({ onStart }: { onStart: (p: RoundPlan) => void }) {
           </View>
         )}
         <Text style={{ color: fade(C.white, 0.5), fontFamily: F.regular, fontSize: 11, textAlign: "center", marginTop: 12, lineHeight: 16 }}>
-          {onchain ? "Your stake is escrowed in the program on Solana devnet. The settler scores the round and pays out." : session ? "Practice mode: NYAN only, drawing sealed with a memo." : "Connect a wallet (top right) to seal drawings on Solana. Without one, rounds are practice only."}
+          {onchain ? "Your stake is escrowed in the program on Solana devnet. The settler scores the round and pays out." : session ? "Practice mode: NYAN play money only. Nothing is sent to your wallet." : "Connect a wallet (top right) to stake devnet SOL. Without one, rounds are practice only."}
         </Text>
       </ScrollView>
 
